@@ -1,0 +1,592 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum AppRole {
+  student
+  intern
+  expert
+  spoc
+  admin
+  therapist
+
+  @@map("app_role")
+}
+
+enum AppointmentStatus {
+  pending
+  confirmed
+  completed
+  cancelled
+
+  @@map("appointment_status")
+}
+
+enum PeerSessionStatus {
+  pending
+  active
+  completed
+  flagged
+
+  @@map("peer_session_status")
+}
+
+enum CreditType {
+  earn
+  spend
+  grant
+  purchase
+
+  @@map("credit_type")
+}
+
+enum ContentType {
+  text
+  voice
+
+  @@map("content_type")
+}
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  email         String   @unique
+  password_hash String
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @updatedAt @db.Timestamptz(6)
+
+  profile             Profile?
+  recovery_credential RecoveryCredential?
+
+  @@map("users")
+}
+
+model Institution {
+  id                      String   @id @default(uuid()) @db.Uuid
+  name                    String
+  eternia_code_hash       String   @unique
+  plan_type               String   @default("basic")
+  credits_pool            Int      @default(0)
+  is_active               Boolean  @default(true)
+  created_at              DateTime @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime @updatedAt @db.Timestamptz(6)
+
+  profiles                Profile[]
+  credit_transactions     CreditTransaction[]
+  expert_availability     ExpertAvailability[]
+  ecc_stability_pool      EccStabilityPool?
+  temp_credentials        TempCredential[]
+  institution_student_ids InstitutionStudentId[]
+  intern_referral_codes   InternReferralCode[]
+
+  @@map("institutions")
+}
+
+model Profile {
+  id                String    @id @db.Uuid
+  institution_id    String?   @db.Uuid
+  username          String
+  role              AppRole   @default(student)
+  is_active         Boolean   @default(true)
+  is_verified       Boolean   @default(false)
+  avatar_url        String?
+  specialty         String?
+  bio               String?
+  total_sessions    Int       @default(0)
+  streak_days       Int       @default(0)
+  student_id        String?   @unique
+  training_status   String    @default("pending")
+  training_progress Json?
+  created_at        DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime  @updatedAt @db.Timestamptz(6)
+  last_login        DateTime? @db.Timestamptz(6)
+
+  user                  User         @relation(fields: [id], references: [id], onDelete: Cascade)
+  institution           Institution? @relation(fields: [institution_id], references: [id])
+  user_private          UserPrivate?
+  user_roles            UserRole[]
+  device_sessions       DeviceSession[]
+  student_appointments  Appointment[]       @relation("student_appointments")
+  expert_appointments   Appointment[]       @relation("expert_appointments")
+  student_peer_sessions PeerSession[]       @relation("student_peer_sessions")
+  intern_peer_sessions  PeerSession[]       @relation("intern_peer_sessions")
+  peer_messages         PeerMessage[]
+  blackbox_entries      BlackboxEntry[]
+  credit_transactions   CreditTransaction[]
+  quest_completions     QuestCompletion[]
+  gratitude_entries     GratitudeEntry[]
+  journal_entries       JournalEntry[]
+  mood_entries          MoodEntry[]
+  notifications         Notification[]
+  audit_logs_actor      AuditLog[]
+  expert_availability   ExpertAvailability[]
+  escalations_as_spoc   EscalationRequest[] @relation("escalation_spoc")
+  escalations_as_admin  EscalationRequest[] @relation("escalation_admin")
+  therapist_sessions    BlackboxSession[]   @relation("therapist_sessions")
+  intern_referral_codes InternReferralCode[]
+
+  @@unique([institution_id, username])
+  @@index([institution_id])
+  @@index([role])
+  @@index([is_active])
+  @@map("profiles")
+}
+
+model UserPrivate {
+  user_id                   String  @id @db.Uuid
+  emergency_name_encrypted  String?
+  emergency_phone_encrypted String?
+  emergency_relation        String?
+  student_id_encrypted      String?
+  device_id_encrypted       String?
+  contact_is_self           Boolean @default(false)
+  apaar_id_encrypted        String?
+  erp_id_encrypted          String?
+  apaar_verified            Boolean @default(false)
+  erp_verified              Boolean @default(false)
+  created_at                DateTime @default(now()) @db.Timestamptz(6)
+  updated_at                DateTime @updatedAt @db.Timestamptz(6)
+
+  profile Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("user_private")
+}
+
+model UserRole {
+  id      String  @id @default(uuid()) @db.Uuid
+  user_id String  @db.Uuid
+  role    AppRole
+
+  profile Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, role])
+  @@map("user_roles")
+}
+
+model DeviceSession {
+  id                 String   @id @default(uuid()) @db.Uuid
+  user_id            String   @db.Uuid
+  device_id_hash     String
+  refresh_token_hash String
+  expires_at         DateTime @db.Timestamptz(6)
+  revoked            Boolean  @default(false)
+  created_at         DateTime @default(now()) @db.Timestamptz(6)
+
+ profile Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("device_sessions")
+}
+
+model ExpertAvailability {
+  id              String   @id @default(uuid()) @db.Uuid
+  expert_id       String   @db.Uuid
+  institution_id  String?  @db.Uuid
+  start_time      DateTime @db.Timestamptz(6)
+  end_time        DateTime @db.Timestamptz(6)
+  is_booked       Boolean  @default(false)
+  recurrence_rule String?
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+
+  expert       Profile      @relation(fields: [expert_id], references: [id], onDelete: Cascade)
+  institution  Institution? @relation(fields: [institution_id], references: [id])
+  appointments Appointment[]
+
+  @@map("expert_availability")
+}
+
+model Appointment {
+  id                      String            @id @default(uuid()) @db.Uuid
+  student_id              String            @db.Uuid
+  expert_id               String            @db.Uuid
+  slot_id                 String?           @db.Uuid
+  slot_time               DateTime          @db.Timestamptz(6)
+  status                  AppointmentStatus @default(pending)
+  session_type            String            @default("video")
+  credits_charged         Int               @default(0)
+  session_notes_encrypted String?
+  room_id                 String?
+  completed_at            DateTime?         @db.Timestamptz(6)
+  reschedule_reason       String?
+  rescheduled_by          String?           @db.Uuid
+  rescheduled_from        DateTime?         @db.Timestamptz(6)
+  created_at              DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime          @updatedAt @db.Timestamptz(6)
+
+  student Profile             @relation("student_appointments", fields: [student_id], references: [id], onDelete: Cascade)
+  expert  Profile             @relation("expert_appointments", fields: [expert_id], references: [id], onDelete: Cascade)
+  slot    ExpertAvailability? @relation(fields: [slot_id], references: [id])
+
+  @@index([student_id])
+  @@index([expert_id])
+  @@index([status])
+  @@index([slot_time])
+  @@map("appointments")
+}
+
+model PeerSession {
+  id                        String            @id @default(uuid()) @db.Uuid
+  student_id                String            @db.Uuid
+  intern_id                 String?           @db.Uuid
+  status                    PeerSessionStatus @default(pending)
+  is_flagged                Boolean           @default(false)
+  escalation_note_encrypted String?
+  room_id                   String?
+  started_at                DateTime?         @db.Timestamptz(6)
+  ended_at                  DateTime?         @db.Timestamptz(6)
+  created_at                DateTime          @default(now()) @db.Timestamptz(6)
+
+  student             Profile     @relation("student_peer_sessions", fields: [student_id], references: [id], onDelete: Cascade)
+  intern              Profile?    @relation("intern_peer_sessions", fields: [intern_id], references: [id], onDelete: SetNull)
+  messages            PeerMessage[]
+  escalation_requests EscalationRequest[]
+
+  @@index([student_id])
+  @@index([status])
+  @@index([started_at])
+  @@map("peer_sessions")
+}
+
+model PeerMessage {
+  id                String   @id @default(uuid()) @db.Uuid
+  session_id        String   @db.Uuid
+  sender_id         String   @db.Uuid
+  content_encrypted String
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+
+  session PeerSession @relation(fields: [session_id], references: [id], onDelete: Cascade)
+  sender  Profile     @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+
+  @@map("peer_messages")
+}
+
+model BlackboxEntry {
+  id                String      @id @default(uuid()) @db.Uuid
+  user_id           String      @db.Uuid
+  content_encrypted String
+  content_type      ContentType @default(text)
+  ai_flag_level     Int         @default(0)
+  is_private        Boolean     @default(false)
+  created_at        DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime    @updatedAt @db.Timestamptz(6)
+
+  user                Profile     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  escalation_requests EscalationRequest[]
+
+  @@index([user_id])
+  @@index([ai_flag_level])
+  @@map("blackbox_entries")
+}
+
+model BlackboxSession {
+  id                      String    @id @default(uuid()) @db.Uuid
+  student_id              String    @db.Uuid
+  therapist_id            String?   @db.Uuid
+  status                  String    @default("queued")
+  flag_level              Int       @default(0)
+  room_id                 String?
+  escalation_reason       String?
+  escalation_history      Json?
+  session_notes_encrypted String?
+  silence_duration_sec    Int?
+  refunded                Boolean   @default(false)
+  last_join_error         String?
+  started_at              DateTime? @db.Timestamptz(6)
+  ended_at                DateTime? @db.Timestamptz(6)
+  student_joined_at       DateTime? @db.Timestamptz(6)
+  therapist_joined_at     DateTime? @db.Timestamptz(6)
+  created_at              DateTime  @default(now()) @db.Timestamptz(6)
+
+  therapist Profile? @relation("therapist_sessions", fields: [therapist_id], references: [id])
+
+  @@map("blackbox_sessions")
+}
+
+model CreditTransaction {
+  id             String     @id @default(uuid()) @db.Uuid
+  user_id        String     @db.Uuid
+  institution_id String?    @db.Uuid
+  delta          Int
+  type           CreditType
+  reference_id   String?    @db.Uuid
+  notes          String?
+  created_at     DateTime   @default(now()) @db.Timestamptz(6)
+
+  user        Profile      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  institution Institution? @relation(fields: [institution_id], references: [id])
+
+  @@index([user_id])
+  @@index([type])
+  @@map("credit_transactions")
+}
+
+model SoundContent {
+  id           String   @id @default(uuid()) @db.Uuid
+  title        String
+  artist       String?
+  category     String
+  description  String?
+  file_url     String?
+  duration_sec Int?
+  cover_emoji  String?
+  is_active    Boolean  @default(true)
+  play_count   Int      @default(0)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("sound_content")
+}
+
+model QuestCard {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String
+  description String
+  xp_reward   Int      @default(10)
+  category    String?
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  completions QuestCompletion[]
+
+  @@map("quest_cards")
+}
+
+model QuestCompletion {
+  id             String   @id @default(uuid()) @db.Uuid
+  user_id        String   @db.Uuid
+  quest_id       String   @db.Uuid
+  completed_date DateTime @db.Date @default(dbgenerated("CURRENT_DATE"))
+  completed_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  user  Profile   @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  quest QuestCard @relation(fields: [quest_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, quest_id, completed_date])
+  @@map("quest_completions")
+}
+
+model RecoveryCredential {
+  id                       String   @id @default(uuid()) @db.Uuid
+  user_id                  String   @unique @db.Uuid
+  fragment_pairs_encrypted String
+  emoji_pattern_encrypted  String
+  created_at               DateTime @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime @updatedAt @db.Timestamptz(6)
+
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("recovery_credentials")
+}
+
+model EscalationRequest {
+  id                      String    @id @default(uuid()) @db.Uuid
+  entry_id                String?   @db.Uuid
+  session_id              String?   @db.Uuid
+  spoc_id                 String    @db.Uuid
+  admin_id                String?   @db.Uuid
+  status                  String    @default("pending")
+  justification_encrypted String
+  escalation_level        Int?      @default(1)
+  trigger_snippet         String?
+  trigger_timestamp       DateTime? @db.Timestamptz(6)
+  resolved_at             DateTime? @db.Timestamptz(6)
+  created_at              DateTime  @default(now()) @db.Timestamptz(6)
+
+  entry   BlackboxEntry? @relation(fields: [entry_id], references: [id], onDelete: SetNull)
+  session PeerSession?   @relation(fields: [session_id], references: [id], onDelete: SetNull)
+  spoc    Profile        @relation("escalation_spoc", fields: [spoc_id], references: [id])
+  admin   Profile?       @relation("escalation_admin", fields: [admin_id], references: [id])
+
+  @@index([spoc_id])
+  @@index([status])
+  @@map("escalation_requests")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid()) @db.Uuid
+  actor_id     String?  @db.Uuid
+  action_type  String
+  target_table String?
+  target_id    String?  @db.Uuid
+  metadata     Json?
+  ip_hash      String?
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  actor Profile? @relation(fields: [actor_id], references: [id])
+
+  @@index([actor_id])
+  @@index([action_type])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  type       String
+  title      String
+  message    String?
+  metadata   Json?
+  is_read    Boolean  @default(false)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@map("notifications")
+}
+
+model TempCredential {
+  id             String   @id @default(uuid()) @db.Uuid
+  institution_id String   @db.Uuid
+  username       String
+  temp_password  String?
+  status         String   @default("pending")
+  expires_at     DateTime @db.Timestamptz(6)
+  auth_user_id   String?  @db.Uuid
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  institution Institution @relation(fields: [institution_id], references: [id])
+
+  @@map("temp_credentials")
+}
+
+model InstitutionStudentId {
+  id              String   @id @default(uuid()) @db.Uuid
+  institution_id  String   @db.Uuid
+  id_type         String
+  student_id_hash String
+  is_claimed      Boolean  @default(false)
+  claimed_by      String?  @db.Uuid
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+
+  institution Institution @relation(fields: [institution_id], references: [id])
+
+  @@unique([institution_id, id_type, student_id_hash])
+  @@map("institution_student_ids")
+}
+
+model AnalyticsEvent {
+  id           String   @id @default(uuid()) @db.Uuid
+  user_id      String?  @db.Uuid
+  session_hash String
+  event_type   String   @default("page_view")
+  page_path    String
+  referrer     String?
+  user_agent   String?
+  screen_size  String?
+  country      String?
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("analytics_events")
+}
+
+model GratitudeEntry {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  entry_1    String
+  entry_2    String?
+  entry_3    String?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("gratitude_entries")
+}
+
+model JournalEntry {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  title      String?
+  content    String
+  mood_tag   String?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+
+  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("journal_entries")
+}
+
+model MoodEntry {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  mood       Int
+  note       String?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  user Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("mood_entries")
+}
+
+model TrainingModule {
+  id             String   @id @default(uuid()) @db.Uuid
+  day_number     Int      @unique
+  title          String
+  description    String
+  duration       String
+  objectives     String[]
+  content        String
+  has_quiz       Boolean  @default(false)
+  quiz_questions Json?
+  is_active      Boolean  @default(true)
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("training_modules")
+}
+
+model InternReferralCode {
+  id             String    @id @default(uuid()) @db.Uuid
+  code           String    @unique
+  institution_id String?   @db.Uuid
+  assigned_to    String?   @db.Uuid
+  is_used        Boolean   @default(false)
+  used_at        DateTime? @db.Timestamptz(6)
+  expires_at     DateTime? @db.Timestamptz(6)
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+
+  institution Institution? @relation(fields: [institution_id], references: [id])
+  user        Profile?     @relation(fields: [assigned_to], references: [id])
+
+  @@map("intern_referral_codes")
+}
+
+model InquiryTicket {
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String
+  email          String
+  phone          String?
+  institution    String?
+  subject        String
+  message        String
+  status         String   @default("pending")
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("inquiry_tickets")
+}
+
+model EccStabilityPool {
+  id                String   @id @default(uuid()) @db.Uuid
+  institution_id    String?  @unique @db.Uuid
+  balance           Int      @default(0)
+  total_contributed Int      @default(0)
+  total_disbursed   Int      @default(0)
+  updated_at        DateTime @updatedAt @db.Timestamptz(6)
+
+  institution Institution? @relation(fields: [institution_id], references: [id])
+
+  @@map("ecc_stability_pool")
+}
+
+model VerificationCode {
+  id         String   @id @default(uuid()) @db.Uuid
+  email      String
+  code       String
+  expires_at DateTime @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("verification_codes")
+}

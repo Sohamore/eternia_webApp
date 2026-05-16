@@ -1,0 +1,22 @@
+# Backend
+backend/node_modules/
+backend/.env
+backend/logs/
+
+# Flutter
+eternia_app/.dart_tool/
+eternia_app/.flutter-plugins
+eternia_app/.flutter-plugins-dependencies
+eternia_app/.packages
+eternia_app/build/
+eternia_app/ios/Flutter/Generated.xcconfig
+eternia_app/ios/Flutter/flutter_export_environment.sh
+eternia_app/ios/Flutter/Flutter.podspec
+eternia_app/android/app/src/main/res/values/strings.xml
+eternia_app/*.lock
+eternia_app/.idea/
+eternia_app/*.iml
+
+# System
+.DS_Store
+Thumbs.db
