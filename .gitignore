@@ -20,6 +20,7 @@ eternia_app/*.iml
 # System
 .DS_Store
 Thumbs.db
-
-# Other projects
-tradeflow-platform-main/
+# Website
+tradeflow-platform-main/node_modules/
+tradeflow-platform-main/.env
+tradeflow-platform-main/dist/
