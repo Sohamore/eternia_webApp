@@ -6,7 +6,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:eternia_ef/Screens/onboarding_screen.dart/sign_in_screen.dart';
 import 'package:eternia_ef/Screens/onboarding_screen.dart/onboarding_screen.dart';
 import 'package:eternia_ef/Tabs/ProfilePage/settings_screen.dart';
 import 'package:eternia_ef/Tabs/ProfilePage/notifications_screen.dart';
@@ -18,6 +17,10 @@ import 'package:eternia_ef/Tabs/ProfilePage/search_screen.dart';
 import 'package:eternia_ef/Tabs/ProfilePage/session_history_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
+import 'package:eternia_ef/providers/profiles_provider.dart';
+import 'package:eternia_ef/providers/credits_provider.dart';
+import 'package:eternia_ef/providers/appointments_provider.dart';
+import 'package:eternia_ef/providers/auth_provider.dart';
 
 class PrivateProfileScreen extends StatefulWidget {
   const PrivateProfileScreen({super.key});
@@ -28,6 +31,16 @@ class PrivateProfileScreen extends StatefulWidget {
 
 class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
   final Color dangerColor = const Color(0xFFD9534F);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ProfilesProvider>(context, listen: false).fetchProfile();
+      Provider.of<CreditsProvider>(context, listen: false).fetchBalance();
+      Provider.of<AppointmentsProvider>(context, listen: false).fetchHistory();
+    });
+  }
 
   void _showConfirmation(String title, String desc, VoidCallback onConfirm) {
     final isDark = Provider.of<ThemeProvider>(context, listen: false).isDark;
@@ -311,6 +324,14 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
     Color cardColor,
     Color borderColor,
   ) {
+    final profilesProvider = Provider.of<ProfilesProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context);
+    final profile = profilesProvider.profile;
+    final user = authProvider.userProfile;
+    final displayName =
+        profile?['displayName'] ?? user?['username'] ?? "Anonymous";
+    final nodeId = user?['id']?.toString().substring(0, 8) ?? "XXXX-X-XX";
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -353,7 +374,7 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Sejal Rai",
+                displayName,
                 style: GoogleFonts.playfairDisplay(
                   color: textColor,
                   fontSize: 26,
@@ -364,7 +385,7 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
               Row(
                 children: [
                   Text(
-                    "NODE ID: 8629-X-21",
+                    "NODE ID: $nodeId",
                     style: GoogleFonts.poppins(
                       color: textColor.withOpacity(0.5),
                       fontSize: 11,
@@ -428,6 +449,13 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
     Color cardColor,
     Color borderColor,
   ) {
+    final creditsProvider = Provider.of<CreditsProvider>(context);
+    final authProvider = Provider.of<AuthProvider>(context);
+    final appointmentsProvider = Provider.of<AppointmentsProvider>(context);
+    final balance = creditsProvider.balance ?? authProvider.creditBalance;
+    final user = authProvider.userProfile;
+    final streak = user?['streak']?.toString() ?? "0";
+
     return Container(
       decoration: BoxDecoration(
         color: cardColor,
@@ -439,7 +467,7 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           _buildStatItem(
-            "42",
+            "${appointmentsProvider.appointments?.length ?? 0}",
             "SESSIONS",
             Icons.history,
             isDark,
@@ -453,7 +481,7 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
           ),
           Container(width: 1, height: 40, color: borderColor),
           _buildStatItem(
-            "1.2k",
+            "$balance",
             "ECC",
             Icons.wallet_outlined,
             isDark,
@@ -467,14 +495,14 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
           ),
           Container(width: 1, height: 40, color: borderColor),
           _buildStatItem(
-            "12",
+            streak,
             "STREAK",
             Icons.local_fire_department,
             isDark,
             const Color(0xFFE67E22),
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("12-day streak active.")),
+                SnackBar(content: Text("$streak-day streak active.")),
               );
             },
           ),
@@ -692,14 +720,13 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
             () => _showConfirmation(
               "Log Out?",
               "You will be returned to the sign in screen. Your node data remains intact.",
-              () {
+              () async {
+                final auth = Provider.of<AuthProvider>(context, listen: false);
+                await auth.logout();
+                if (!mounted) return;
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const OnboardingScreen()),
                   (route) => false,
-                );
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SignInScreen()),
                 );
               },
             ),
@@ -715,15 +742,14 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
             () => _showConfirmation(
               "Delete Node?",
               "This will permanently wipe all your data, sessions, and identity. This cannot be undone.",
-              () {
+              () async {
                 // TODO: call delete API here
+                final auth = Provider.of<AuthProvider>(context, listen: false);
+                await auth.logout();
+                if (!mounted) return;
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const OnboardingScreen()),
                   (route) => false,
-                );
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SignInScreen()),
                 );
               },
             ),

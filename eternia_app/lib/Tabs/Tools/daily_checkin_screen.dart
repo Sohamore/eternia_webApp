@@ -4,7 +4,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:eternia_ef/utils/eternia_theme.dart';
+import 'package:eternia_ef/providers/selfhelp_provider.dart';
 
 class DailyCheckinScreen extends StatefulWidget {
   const DailyCheckinScreen({super.key});
@@ -162,12 +164,33 @@ class _DailyCheckinScreenState extends State<DailyCheckinScreen> {
               // SUBMIT BUTTON
               // ===================================================
               GestureDetector(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text('Check-in Saved', style: GoogleFonts.poppins()),
-                    backgroundColor: theme.primary,
-                  ));
-                  Navigator.pop(context);
+                onTap: () async {
+                  if (_selectedMood < 0) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('Please select a mood first', style: GoogleFonts.poppins()),
+                      backgroundColor: Colors.orange,
+                    ));
+                    return;
+                  }
+                  // Map mood index to score (0=Great=5, 4=Anxious=1)
+                  final moodScore = 5 - _selectedMood;
+                  final note = "Energy: ${(_energyLevel * 100).toInt()}%, Stress: ${(_stressLevel * 100).toInt()}%";
+                  final success = await Provider.of<SelfHelpProvider>(context, listen: false)
+                      .logMood(mood: moodScore, note: note);
+                  if (mounted) {
+                    if (success) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('Check-in Saved', style: GoogleFonts.poppins()),
+                        backgroundColor: theme.primary,
+                      ));
+                      Navigator.pop(context);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(Provider.of<SelfHelpProvider>(context, listen: false).error ?? 'Failed to save', style: GoogleFonts.poppins()),
+                        backgroundColor: Colors.red,
+                      ));
+                    }
+                  }
                 },
                 child: Container(
                   width: double.infinity,

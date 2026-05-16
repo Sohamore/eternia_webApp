@@ -3,11 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
+import 'package:eternia_ef/providers/peers_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final String counselorName;
+  final String? sessionId;
 
-  const ChatScreen({super.key, this.counselorName = "Counselor"});
+  const ChatScreen({
+    super.key,
+    this.counselorName = "Counselor",
+    this.sessionId,
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -21,46 +27,92 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
 
-    // Initial messages
-    _messages.add({
-      'isSent': false,
-      'text': "Hello. How are you feeling today?",
-      'time': "10:04 AM",
-      'sender': widget.counselorName,
+    // Fetch real messages if sessionId is provided
+    if (widget.sessionId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final provider = Provider.of<PeersProvider>(context, listen: false);
+        await provider.fetchMessages(widget.sessionId!);
+        _syncMessages(provider.messages);
+      });
+    } else {
+      // Fallback: add greeting if no session ID
+      _messages.add({
+        'isSent': false,
+        'text': "Hello. How are you feeling today?",
+        'time': "10:04 AM",
+        'sender': widget.counselorName,
+      });
+    }
+  }
+
+  void _syncMessages(List<Map<String, dynamic>>? backendMessages) {
+    if (backendMessages == null || !mounted) return;
+    setState(() {
+      _messages.clear();
+      for (final msg in backendMessages) {
+        final isSent =
+            msg['sender_type'] == 'user' || msg['is_from_user'] == true;
+        final createdAt = msg['created_at'] as String?;
+        String timeStr = '';
+        if (createdAt != null) {
+          try {
+            final dt = DateTime.parse(createdAt).toLocal();
+            final hour = dt.hour > 12
+                ? dt.hour - 12
+                : (dt.hour == 0 ? 12 : dt.hour);
+            final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+            timeStr = '$hour:${dt.minute.toString().padLeft(2, '0')} $ampm';
+          } catch (_) {}
+        }
+        _messages.add({
+          'isSent': isSent,
+          'text': msg['content'] as String? ?? '',
+          'time': isSent ? 'DELIVERED - $timeStr' : timeStr,
+          'sender': isSent ? 'You' : (widget.counselorName),
+        });
+      }
+      // If no messages loaded, add a greeting
+      if (_messages.isEmpty) {
+        _messages.add({
+          'isSent': false,
+          'text': "Hello. How are you feeling today?",
+          'time': "Now",
+          'sender': widget.counselorName,
+        });
+      }
     });
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     if (_controller.text.trim().isEmpty) return;
 
     final userText = _controller.text.trim();
     final now = DateTime.now();
-    final timeStr =
-        "${now.hour}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}";
+    final hour = now.hour > 12
+        ? now.hour - 12
+        : (now.hour == 0 ? 12 : now.hour);
+    final ampm = now.hour >= 12 ? 'PM' : 'AM';
+    final timeStr = '$hour:${now.minute.toString().padLeft(2, '0')} $ampm';
 
     setState(() {
       _messages.add({
         'isSent': true,
         'text': userText,
-        'time': "DELIVERED - $timeStr",
+        'time': 'DELIVERED - $timeStr',
       });
       _controller.clear();
     });
 
-    // Auto-reply
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _messages.add({
-            'isSent': false,
-            'text':
-                "Thank you for sharing that with me. I'm here to listen and help you navigate through these feelings. What do you think triggered this?",
-            'time': timeStr,
-            'sender': widget.counselorName,
-          });
-        });
+    // Send via provider if sessionId available
+    if (widget.sessionId != null) {
+      final provider = Provider.of<PeersProvider>(context, listen: false);
+      final success = await provider.sendMessage(widget.sessionId!, userText);
+      if (success && mounted) {
+        // Re-sync to get any new messages from the other party
+        await provider.fetchMessages(widget.sessionId!);
+        _syncMessages(provider.messages);
       }
-    });
+    }
   }
 
   @override

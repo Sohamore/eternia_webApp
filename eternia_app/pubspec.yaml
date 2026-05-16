@@ -45,6 +45,7 @@ dependencies:
   just_audio: ^0.9.42
   dio: ^5.7.0
   shared_preferences: ^2.3.5
+  flutter_secure_storage: ^9.2.4
 
 dev_dependencies:
   flutter_test:
@@ -81,7 +82,6 @@ flutter:
     - assets/images/
     - assets/audio/
   #   - images/a_dot_ham.jpeg
-
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

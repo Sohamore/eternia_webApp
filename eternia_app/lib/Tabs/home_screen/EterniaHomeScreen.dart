@@ -18,6 +18,8 @@ import 'package:eternia_ef/Tabs/ProfilePage/private_profile_screen.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
 import 'package:eternia_ef/providers/auth_provider.dart';
 import 'package:eternia_ef/Tabs/Tools/sound_therapy_screen.dart';
+import 'package:eternia_ef/providers/credits_provider.dart';
+import 'package:eternia_ef/providers/selfhelp_provider.dart';
 
 class EterniaHomeScreen extends StatefulWidget {
   const EterniaHomeScreen({super.key});
@@ -51,8 +53,10 @@ class _EterniaHomeScreenState
         setState(() {
           _insightIndex = (_insightIndex + 1) % _insights.length;
         });
-        print("Insight changed to: $_insightIndex");
       }
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<CreditsProvider>(context, listen: false).fetchBalance();
     });
   }
 
@@ -450,22 +454,27 @@ class _EterniaHomeScreenState
                             children: [
                               _mood("😊", "Joyful", textColor, _selectedMood == "Joyful", () {
                                 setState(() => _selectedMood = "Joyful");
+                                Provider.of<SelfHelpProvider>(context, listen: false).logMood(mood: 5, note: "Joyful");
                               }),
                               const SizedBox(width: 20),
                               _mood("😟", "Worried", textColor, _selectedMood == "Worried", () {
                                 setState(() => _selectedMood = "Worried");
+                                Provider.of<SelfHelpProvider>(context, listen: false).logMood(mood: 2, note: "Worried");
                               }),
                               const SizedBox(width: 20),
                               _mood("😞", "Drained", textColor, _selectedMood == "Drained", () {
                                 setState(() => _selectedMood = "Drained");
+                                Provider.of<SelfHelpProvider>(context, listen: false).logMood(mood: 1, note: "Drained");
                               }),
                               const SizedBox(width: 20),
                               _mood("😠", "Frustrated", textColor, _selectedMood == "Frustrated", () {
                                 setState(() => _selectedMood = "Frustrated");
+                                Provider.of<SelfHelpProvider>(context, listen: false).logMood(mood: 1, note: "Frustrated");
                               }),
                               const SizedBox(width: 20),
                               _mood("😌", "Peaceful", textColor, _selectedMood == "Peaceful", () {
                                 setState(() => _selectedMood = "Peaceful");
+                                Provider.of<SelfHelpProvider>(context, listen: false).logMood(mood: 4, note: "Peaceful");
                               }),
                             ],
                           ),

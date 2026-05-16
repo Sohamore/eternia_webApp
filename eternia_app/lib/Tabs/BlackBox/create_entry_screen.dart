@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'package:eternia_ef/providers/theme_provider.dart';
+import 'package:eternia_ef/providers/blackbox_provider.dart';
 import 'package:eternia_ef/utils/theme_config.dart';
 import 'package:eternia_ef/Tabs/BlackBox/voice_recording_screen.dart';
 
@@ -21,6 +22,8 @@ class CreateEntryScreen extends StatefulWidget {
 
 class _CreateEntryScreenState extends State<CreateEntryScreen> {
   String selectedMood = "Neutral";
+  final TextEditingController _textController = TextEditingController();
+  bool _isSaving = false;
 
   final List<Map<String, dynamic>> moods = [
     {"icon": Icons.sentiment_very_satisfied, "label": "Joyful"},
@@ -68,8 +71,29 @@ class _CreateEntryScreenState extends State<CreateEntryScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Text(
+                    onTap: _isSaving ? null : () async {
+                      final content = _textController.text.trim();
+                      if (content.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Please write something first.")),
+                        );
+                        return;
+                      }
+                      setState(() => _isSaving = true);
+                      final success = await Provider.of<BlackBoxProvider>(context, listen: false)
+                          .createEntry(content: content);
+                      setState(() => _isSaving = false);
+                      if (success && mounted) {
+                        Navigator.pop(context);
+                      } else if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(Provider.of<BlackBoxProvider>(context, listen: false).error ?? "Failed to save.")),
+                        );
+                      }
+                    },
+                    child: _isSaving
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        : Text(
                       "Save",
                       style: GoogleFonts.poppins(
                         color: primaryColor,
@@ -198,6 +222,7 @@ class _CreateEntryScreenState extends State<CreateEntryScreen> {
         border: Border.all(color: Colors.greenAccent),
       ),
       child: TextField(
+        controller: _textController,
         maxLines: 8,
         style: GoogleFonts.poppins(fontSize: 14),
         decoration: InputDecoration(

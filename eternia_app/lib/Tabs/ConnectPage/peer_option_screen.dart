@@ -7,13 +7,27 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
+import 'package:eternia_ef/providers/peers_provider.dart';
 import 'package:eternia_ef/Tabs/ConnectPage/recommend_screen.dart';
 import 'package:eternia_ef/Tabs/ConnectPage/institutional_support_screen.dart';
 
-class PeerOptionScreen extends StatelessWidget {
+class PeerOptionScreen extends StatefulWidget {
   final Function(String) onPeerSelected;
 
   const PeerOptionScreen({super.key, required this.onPeerSelected});
+
+  @override
+  State<PeerOptionScreen> createState() => _PeerOptionScreenState();
+}
+
+class _PeerOptionScreenState extends State<PeerOptionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<PeersProvider>(context, listen: false).fetchInterns();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +78,7 @@ class PeerOptionScreen extends StatelessWidget {
                 "Random Node Match",
                 "Connect with an anonymous peer instantly",
                 Icons.shuffle_rounded,
-                () => onPeerSelected("Anonymous Node"),
+                () => widget.onPeerSelected("Anonymous Node"),
                 isDark: isDark,
                 primary: primary,
                 cardColor: cardColor,

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
+import 'package:eternia_ef/providers/notifications_provider.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -15,17 +16,13 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  final List<Map<String, dynamic>> _todayNotifications = [
-    {"title": "Session Reminder", "body": "Your session with Dr. Aria starts in 30 minutes.", "time": "2m ago", "icon": Icons.event_available_outlined, "read": false, "type": "alert"},
-    {"title": "New Message", "body": "Resident #AQ-441 sent you a message.", "time": "15m ago", "icon": Icons.chat_bubble_outline, "read": false, "type": "social"},
-  ];
-
-  final List<Map<String, dynamic>> _earlierNotifications = [
-    {"title": "Mood Streak", "body": "You've logged your mood for 7 days straight!", "time": "1h ago", "icon": Icons.local_fire_department_outlined, "read": true, "type": "achievement"},
-    {"title": "Community Update", "body": "Peer Circle #242 has a new discussion.", "time": "3h ago", "icon": Icons.people_outline, "read": true, "type": "social"},
-    {"title": "Breathing Complete", "body": "Great job! You completed today's breathing exercise.", "time": "5h ago", "icon": Icons.air_outlined, "read": true, "type": "activity"},
-    {"title": "Weekly Report", "body": "Your wellness summary for this week is ready.", "time": "1d ago", "icon": Icons.analytics_outlined, "read": true, "type": "insight"},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<NotificationsProvider>(context, listen: false).fetchNotifications();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,19 +44,37 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: _buildHeader(context, textColor, primaryColor),
             ),
             Expanded(
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                children: [
-                  _buildSectionLabel("TODAY", primaryColor),
-                  const SizedBox(height: 12),
-                  ..._todayNotifications.map((n) => _buildFloatingCard(n, isDark, primaryColor, textColor)).toList(),
-                  const SizedBox(height: 24),
-                  _buildSectionLabel("EARLIER", primaryColor),
-                  const SizedBox(height: 12),
-                  ..._earlierNotifications.map((n) => _buildFloatingCard(n, isDark, primaryColor, textColor)).toList(),
-                  const SizedBox(height: 40),
-                ],
+              child: Consumer<NotificationsProvider>(
+                builder: (context, notifProvider, _) {
+                  if (notifProvider.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (notifProvider.error != null) {
+                    return Center(child: Text(notifProvider.error!, style: GoogleFonts.poppins(color: Colors.red)));
+                  }
+                  final notifications = notifProvider.notifications;
+                  if (notifications == null || notifications.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.notifications_off_outlined, color: primaryColor.withOpacity(0.5), size: 48),
+                          const SizedBox(height: 16),
+                          Text("No notifications yet", style: GoogleFonts.poppins(color: isDark ? Colors.white70 : Colors.black54, fontSize: 14)),
+                        ],
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    itemCount: notifications.length,
+                    itemBuilder: (context, index) {
+                      final n = notifications[index];
+                      return _buildNotificationCard(n, isDark, primaryColor, textColor);
+                    },
+                  );
+                },
               ),
             ),
           ],
@@ -99,38 +114,28 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildSectionLabel(String text, Color primaryColor) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
-      child: Text(
-        text,
-        style: GoogleFonts.poppins(
-          color: primaryColor.withOpacity(0.6),
-          fontSize: 11,
-          letterSpacing: 2,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
+  Widget _buildNotificationCard(Map<String, dynamic> n, bool isDark, Color primaryColor, Color textColor) {
+    final bool isRead = n["is_read"] == true;
+    final String type = n["type"] as String? ?? "activity";
+    final String title = n["title"] as String? ?? "Notification";
+    final String body = n["body"] as String? ?? "";
+    final String time = n["created_at"] != null
+        ? _formatTime(n["created_at"] as String)
+        : "";
 
-  Widget _buildFloatingCard(Map<String, dynamic> n, bool isDark, Color primaryColor, Color textColor) {
-    final bool isRead = n["read"] as bool;
-    final String type = n["type"] as String;
-    
-    // Determine icon color based on type
+    IconData icon = Icons.notifications_outlined;
     Color iconColor = primaryColor;
-    if (type == "alert") iconColor = const Color(0xFFE53935);
-    if (type == "achievement") iconColor = const Color(0xFFFFB300);
-    if (type == "social") iconColor = const Color(0xFF42A5F5);
+    if (type == "alert") { icon = Icons.event_available_outlined; iconColor = const Color(0xFFE53935); }
+    if (type == "achievement") { icon = Icons.local_fire_department_outlined; iconColor = const Color(0xFFFFB300); }
+    if (type == "social") { icon = Icons.chat_bubble_outline; iconColor = const Color(0xFF42A5F5); }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () {
-          setState(() {
-            n["read"] = true;
-          });
+          if (!isRead) {
+            Provider.of<NotificationsProvider>(context, listen: false).markAsRead(n['id'].toString());
+          }
         },
         borderRadius: BorderRadius.circular(20),
         child: Container(
@@ -139,7 +144,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             color: isDark ? const Color(0xFF141D1F) : Colors.white,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isRead 
+              color: isRead
                   ? (isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.2))
                   : iconColor.withOpacity(0.3),
               width: isRead ? 1 : 1.5,
@@ -161,7 +166,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   color: isRead ? (isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1)) : iconColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(n["icon"] as IconData, color: isRead ? (isDark ? Colors.grey[500] : Colors.grey[600]) : iconColor, size: 22),
+                child: Icon(icon, color: isRead ? (isDark ? Colors.grey[500] : Colors.grey[600]) : iconColor, size: 22),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -173,18 +178,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       children: [
                         Flexible(
                           child: Text(
-                            n["title"] as String, 
+                            title,
                             style: GoogleFonts.poppins(
-                              color: textColor, 
-                              fontSize: 14, 
+                              color: textColor,
+                              fontSize: 14,
                               fontWeight: isRead ? FontWeight.w500 : FontWeight.bold
                             )
                           ),
                         ),
                         Text(
-                          n["time"] as String, 
+                          time,
                           style: GoogleFonts.poppins(
-                            color: isRead ? (isDark ? Colors.grey[600] : Colors.grey[500]) : iconColor, 
+                            color: isRead ? (isDark ? Colors.grey[600] : Colors.grey[500]) : iconColor,
                             fontSize: 10,
                             fontWeight: isRead ? FontWeight.w400 : FontWeight.w600,
                           )
@@ -193,10 +198,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      n["body"] as String, 
+                      body,
                       style: GoogleFonts.poppins(
-                        color: isDark ? Colors.grey[400] : Colors.grey[700], 
-                        fontSize: 12, 
+                        color: isDark ? Colors.grey[400] : Colors.grey[700],
+                        fontSize: 12,
                         height: 1.4
                       )
                     ),
@@ -214,5 +219,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ),
       ),
     );
+  }
+
+  String _formatTime(String isoDate) {
+    try {
+      final date = DateTime.parse(isoDate);
+      final diff = DateTime.now().difference(date);
+      if (diff.inMinutes < 60) return "${diff.inMinutes}m ago";
+      if (diff.inHours < 24) return "${diff.inHours}h ago";
+      if (diff.inDays < 7) return "${diff.inDays}d ago";
+      return "${date.day}/${date.month}/${date.year}";
+    } catch (_) {
+      return "";
+    }
   }
 }

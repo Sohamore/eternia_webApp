@@ -21,6 +21,11 @@ function errorHandler(err, req, res, next) {
   const status = err.status || err.statusCode || 500;
   const message = err.message || 'Internal server error';
 
+  // For client errors (4xx), always show the real message
+  if (status >= 400 && status < 500) {
+    return res.status(status).json({ error: message });
+  }
+
   res.status(status).json({
     error: process.env.NODE_ENV === 'production' ? 'Internal server error' : message,
   });

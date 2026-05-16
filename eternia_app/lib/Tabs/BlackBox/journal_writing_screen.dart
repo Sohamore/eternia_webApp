@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
+import 'package:eternia_ef/providers/selfhelp_provider.dart';
 
 class JournalWritingScreen extends StatefulWidget {
   const JournalWritingScreen({super.key});
@@ -12,6 +13,28 @@ class JournalWritingScreen extends StatefulWidget {
 
 class _JournalWritingScreenState extends State<JournalWritingScreen> {
   final TextEditingController _controller = TextEditingController();
+  bool _isSaving = false;
+
+  Future<void> _saveJournal() async {
+    final content = _controller.text.trim();
+    if (content.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please write something first.")),
+      );
+      return;
+    }
+    setState(() => _isSaving = true);
+    final success = await Provider.of<SelfHelpProvider>(context, listen: false)
+        .createJournal(content: content);
+    setState(() => _isSaving = false);
+    if (success && mounted) {
+      _showSuccessPopup();
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(Provider.of<SelfHelpProvider>(context, listen: false).error ?? "Failed to save journal.")),
+      );
+    }
+  }
 
   void _showSuccessPopup() {
     final isDark = Provider.of<ThemeProvider>(context, listen: false).isDark;
@@ -91,8 +114,10 @@ class _JournalWritingScreenState extends State<JournalWritingScreen> {
         ),
         actions: [
           TextButton(
-            onPressed: _showSuccessPopup,
-            child: Text(
+            onPressed: _isSaving ? null : _saveJournal,
+            child: _isSaving
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                : Text(
               "Send",
               style: GoogleFonts.poppins(
                 color: primary,

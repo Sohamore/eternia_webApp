@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
 import 'package:eternia_ef/providers/theme_provider.dart';
+import 'package:eternia_ef/providers/quests_provider.dart';
 import 'package:eternia_ef/utils/theme_config.dart';
 
 class QuestCardsScreen extends StatefulWidget {
@@ -22,7 +23,8 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
   int _currentPage = 0;
   final Set<int> _completedQuests = {};
 
-  final List<Map<String, String>> _quests = [
+  // Fallback quests if backend returns empty
+  final List<Map<String, String>> _fallbackQuests = [
     {
       "title": "The Inner Sanctuary",
       "desc": "Identify one thing in your life that makes you feel completely safe.",
@@ -50,12 +52,30 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
     },
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<QuestsProvider>(context, listen: false).fetchQuests();
+    });
+  }
+
   void _onReflect(int index) {
     if (_completedQuests.contains(index)) return;
 
     setState(() {
       _completedQuests.add(index);
     });
+
+    // Complete quest via provider
+    final questsProvider = Provider.of<QuestsProvider>(context, listen: false);
+    final quests = questsProvider.quests;
+    if (quests != null && index < quests.length) {
+      final questId = quests[index]['id']?.toString();
+      if (questId != null) {
+        questsProvider.completeQuest(questId);
+      }
+    }
 
     _showSuccessDialog();
   }
@@ -130,6 +150,28 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
         ? SanctuaryTheme.darkPrimary
         : SanctuaryTheme.lightPrimary;
 
+    final questsProvider = Provider.of<QuestsProvider>(context);
+    final providerQuests = questsProvider.quests;
+
+    // Use provider quests if available, otherwise fallback
+    final List<Map<String, String>> _quests;
+    if (providerQuests != null && providerQuests.isNotEmpty) {
+      _quests = providerQuests.map((q) => <String, String>{
+        "title": q['title'] as String? ?? "Quest",
+        "desc": q['description'] as String? ?? q['desc'] as String? ?? "",
+        "icon": q['icon'] as String? ?? "✨",
+      }).toList();
+    } else {
+      _quests = _fallbackQuests;
+    }
+
+    if (questsProvider.isLoading && providerQuests == null) {
+      return Scaffold(
+        backgroundColor: isDark ? const Color(0xFF071011) : const Color(0xFFF6F3ED),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       backgroundColor: isDark
           ? const Color(0xFF071011)
@@ -156,7 +198,7 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
               ),
             ),
             const SizedBox(height: 40),
-            _buildPagination(primaryColor),
+            _buildPagination(primaryColor, _quests.length),
             const SizedBox(height: 60),
           ],
         ),
@@ -315,10 +357,10 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
     );
   }
 
-  Widget _buildPagination(Color primaryColor) {
+  Widget _buildPagination(Color primaryColor, int count) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(_quests.length, (index) {
+      children: List.generate(count, (index) {
         final bool isCurrent = _currentPage == index;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 300),

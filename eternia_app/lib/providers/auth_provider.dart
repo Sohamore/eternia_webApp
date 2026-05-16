@@ -1,120 +1,180 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../core/api_client.dart';
 import 'package:dio/dio.dart';
+import '../core/api_client.dart';
+import '../core/token_storage.dart';
+import '../core/api_error.dart';
+import '../services/auth_service.dart';
 
 class AuthProvider extends ChangeNotifier {
-  final ApiClient _apiClient = ApiClient();
+  final AuthService _authService;
+  final TokenStorage _tokenStorage;
+
+  bool _isInitializing = true;
   bool _isLoading = false;
+  String? _error;
   String? _token;
   Map<String, dynamic>? _userProfile;
+  int _creditBalance = 0;
 
+  bool get isInitializing => _isInitializing;
   bool get isLoading => _isLoading;
+  String? get error => _error;
   bool get isAuthenticated => _token != null;
   Map<String, dynamic>? get userProfile => _userProfile;
+  int get creditBalance => _creditBalance;
 
-  AuthProvider() {
+  AuthProvider({
+    required AuthService authService,
+    required TokenStorage tokenStorage,
+  }) : _authService = authService,
+       _tokenStorage = tokenStorage {
     _loadSession();
   }
 
   Future<void> _loadSession() async {
-    final prefs = await SharedPreferences.getInstance();
-    _token = prefs.getString('auth_token');
-    if (_token != null) {
-      await fetchMe();
+    try {
+      final storedToken = await _tokenStorage.getAccessToken();
+      if (storedToken == null) {
+        debugPrint('[AuthProvider] No stored token, unauthenticated');
+        return;
+      }
+
+      _token = storedToken;
+      debugPrint('[AuthProvider] Found stored token, restoring session...');
+      try {
+        final data = await _authService.fetchMe();
+        _userProfile = data['user'] as Map<String, dynamic>?;
+        _creditBalance = (data['creditBalance'] as num?)?.toInt() ?? 0;
+        debugPrint(
+          '[AuthProvider] Session restored: ${_userProfile?['username']}',
+        );
+      } on DioException catch (e) {
+        debugPrint(
+          '[AuthProvider] Session restore failed: ${e.response?.statusCode} ${e.response?.data}',
+        );
+        _token = null;
+        _userProfile = null;
+        _creditBalance = 0;
+        await _tokenStorage.clearTokens();
+      }
+    } finally {
+      _isInitializing = false;
+      notifyListeners();
     }
-    notifyListeners();
   }
 
   Future<bool> login(String username, String password) async {
+    _error = null;
     _isLoading = true;
     notifyListeners();
 
     try {
-      final response = await _apiClient.dio.post('/auth/login', data: {
-        'username': username,
-        'password': password,
-      });
+      debugPrint('[AuthProvider] login attempt: $username');
+      final data = await _authService.login(username, password);
+      debugPrint('[AuthProvider] login success: ${data['user']?['username']}');
+      _token = data['token'] as String;
+      final refreshToken = data['refreshToken'] as String;
+      _userProfile = data['user'] as Map<String, dynamic>?;
+      _creditBalance = (data['creditBalance'] as num?)?.toInt() ?? 0;
 
-      if (response.statusCode == 200) {
-        final data = response.data;
-        _token = data['token'];
-        _userProfile = data['user'];
+      await _tokenStorage.saveTokens(
+        accessToken: _token!,
+        refreshToken: refreshToken,
+      );
 
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_token', _token!);
-        
-        _isLoading = false;
-        notifyListeners();
-        return true;
-      }
+      _isLoading = false;
+      notifyListeners();
+      return true;
     } on DioException catch (e) {
-      debugPrint("Login error: ${e.response?.data ?? e.message}");
+      debugPrint(
+        '[AuthProvider] login error: ${e.response?.statusCode} ${e.response?.data}',
+      );
+      final apiError = ApiClient.classifyError(e);
+      _error = apiError.message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
-
-    _isLoading = false;
-    notifyListeners();
-    return false;
   }
 
-  Future<bool> register(String username, String password, {Map<String, dynamic>? metadata}) async {
+  Future<bool> register(
+    String username,
+    String password, {
+    Map<String, dynamic>? metadata,
+  }) async {
+    _error = null;
     _isLoading = true;
     notifyListeners();
 
     try {
-      final response = await _apiClient.dio.post('/auth/register', data: {
-        'username': username,
-        'password': password,
-        ...?metadata,
-      });
+      debugPrint('[AuthProvider] register attempt: $username');
+      final data = await _authService.register(
+        username,
+        password,
+        metadata: metadata,
+      );
+      debugPrint(
+        '[AuthProvider] register success: ${data['user']?['username']}',
+      );
+      _token = data['token'] as String;
+      final refreshToken = data['refreshToken'] as String;
+      _userProfile = data['user'] as Map<String, dynamic>?;
 
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        // After registration, we usually login the user
-        return await login(username, password);
-      }
+      await _tokenStorage.saveTokens(
+        accessToken: _token!,
+        refreshToken: refreshToken,
+      );
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
     } on DioException catch (e) {
-      debugPrint("Register error: ${e.response?.data ?? e.message}");
+      debugPrint(
+        '[AuthProvider] register error: ${e.response?.statusCode} ${e.response?.data}',
+      );
+      final apiError = ApiClient.classifyError(e);
+      _error = apiError.message;
+      _isLoading = false;
+      notifyListeners();
+      return false;
     }
-
-    _isLoading = false;
-    notifyListeners();
-    return false;
   }
 
   Future<void> fetchMe() async {
     try {
-      final response = await _apiClient.dio.get('/auth/me');
-      if (response.statusCode == 200) {
-        _userProfile = response.data['user'];
-        notifyListeners();
-      }
-    } catch (e) {
-      debugPrint("Fetch me error: $e");
-      logout();
+      final data = await _authService.fetchMe();
+      _userProfile = data['user'] as Map<String, dynamic>?;
+      _creditBalance = (data['creditBalance'] as num?)?.toInt() ?? 0;
+      notifyListeners();
+    } on DioException {
+      await logout();
     }
   }
 
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_token');
+    try {
+      await _authService.logout();
+    } catch (_) {}
     _token = null;
     _userProfile = null;
+    _creditBalance = 0;
+    _error = null;
+    await _tokenStorage.clearTokens();
     notifyListeners();
   }
 
-  // --- OTP & Password Reset Methods ---
-
   Future<bool> sendOTP(String emailOrUsername) async {
+    _error = null;
     _isLoading = true;
     notifyListeners();
     try {
-      final response = await _apiClient.dio.post('/auth/send-otp', data: {
-        'email': emailOrUsername,
-      });
+      await _authService.sendOtp(emailOrUsername);
       _isLoading = false;
       notifyListeners();
-      return response.statusCode == 200;
-    } catch (e) {
+      return true;
+    } on DioException catch (e) {
+      final apiError = ApiClient.classifyError(e);
+      _error = apiError.message;
       _isLoading = false;
       notifyListeners();
       return false;
@@ -122,39 +182,50 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<bool> verifyOTP(String emailOrUsername, String otp) async {
+    _error = null;
     _isLoading = true;
     notifyListeners();
     try {
-      final response = await _apiClient.dio.post('/auth/verify-otp', data: {
-        'email': emailOrUsername,
-        'otp': otp,
-      });
+      await _authService.verifyOtp(emailOrUsername, otp);
       _isLoading = false;
       notifyListeners();
-      return response.statusCode == 200;
-    } catch (e) {
+      return true;
+    } on DioException catch (e) {
+      final apiError = ApiClient.classifyError(e);
+      _error = apiError.message;
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> resetPasswordOTP(String username, String newPassword, String otp) async {
+  Future<bool> resetPasswordOTP(
+    String username,
+    String newPassword,
+    String otp,
+  ) async {
+    _error = null;
     _isLoading = true;
     notifyListeners();
     try {
-      final response = await _apiClient.dio.post('/auth/reset-password-otp', data: {
-        'username': username,
-        'newPassword': newPassword,
-        'otp': otp,
-      });
+      await _authService.resetPasswordOtp(username, newPassword, otp);
       _isLoading = false;
       notifyListeners();
-      return response.statusCode == 200;
-    } catch (e) {
+      return true;
+    } on DioException catch (e) {
+      final apiError = ApiClient.classifyError(e);
+      _error = apiError.message;
       _isLoading = false;
       notifyListeners();
       return false;
     }
+  }
+
+  void handleSessionExpired() {
+    _token = null;
+    _userProfile = null;
+    _creditBalance = 0;
+    _error = null;
+    notifyListeners();
   }
 }

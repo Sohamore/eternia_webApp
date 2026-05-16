@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
+import 'package:eternia_ef/providers/blackbox_provider.dart';
 import 'package:eternia_ef/Tabs/BlackBox/create_entry_screen.dart';
 import 'package:eternia_ef/Tabs/BlackBox/voice_recording_screen.dart';
 import 'package:eternia_ef/Tabs/BlackBox/journal_writing_screen.dart';
@@ -21,6 +22,13 @@ class BlackBoxScreen extends StatefulWidget {
 }
 
 class _BlackBoxScreenState extends State<BlackBoxScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<BlackBoxProvider>(context, listen: false).fetchEntries();
+    });
+  }
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<ThemeProvider>(context);
@@ -500,35 +508,58 @@ class _BlackBoxScreenState extends State<BlackBoxScreen> {
                 const SizedBox(height: 22),
 
                 // =====================================================
-                // MEMORY CARD 1
+                // MEMORY CARDS FROM PROVIDER
                 // =====================================================
-                _memoryCard(
-                  isDark,
-                  cardColor,
-                  textColor,
-                  primaryColor,
-                  "assets/figma/Forest.png",
-                  "CALM • 2h ago",
-                  "The weight of the morning fog...",
-                  "Spoken entry regarding the peaceful silence that heals.",
-                  true,
-                ),
+                Consumer<BlackBoxProvider>(
+                  builder: (context, blackBoxProvider, _) {
+                    if (blackBoxProvider.isLoading && blackBoxProvider.entries == null) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final entries = blackBoxProvider.entries;
+                    if (entries == null || entries.isEmpty) {
+                      return Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: cardColor,
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
+                        ),
+                        child: Center(
+                          child: Text(
+                            "No memories yet. Start expressing yourself.",
+                            style: GoogleFonts.poppins(color: subText, fontSize: 13),
+                          ),
+                        ),
+                      );
+                    }
+                    return Column(
+                      children: entries.take(2).map((entry) {
+                        final content = entry['content'] as String? ?? "";
+                        final contentType = entry['content_type'] as String? ?? entry['contentType'] as String? ?? "text";
+                        final createdAt = entry['created_at'] as String? ?? entry['createdAt'] as String? ?? "";
+                        final timeAgo = _formatTimeAgo(createdAt);
+                        final isVoice = contentType == 'voice' || contentType == 'audio';
+                        final tag = isVoice ? "VOICE • $timeAgo" : "WRITTEN • $timeAgo";
+                        final title = content.length > 35 ? "${content.substring(0, 35)}..." : content;
+                        final subtitle = content.length > 60 ? "${content.substring(0, 60)}..." : content;
 
-                const SizedBox(height: 16),
-
-                // =====================================================
-                // MEMORY CARD 2
-                // =====================================================
-                _memoryCard(
-                  isDark,
-                  cardColor,
-                  textColor,
-                  const Color(0xFFB47CFF),
-                  "assets/figma/wave.png",
-                  "CONTEMPLATIVE • Yesterday",
-                  "Navigating the digital ocean",
-                  "Written journal entry about the speed of thoughts.",
-                  false,
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _memoryCard(
+                            isDark,
+                            cardColor,
+                            textColor,
+                            isVoice ? primaryColor : const Color(0xFFB47CFF),
+                            isVoice ? "assets/figma/Forest.png" : "assets/figma/wave.png",
+                            tag,
+                            title,
+                            subtitle,
+                            isVoice,
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
                 ),
 
                 const SizedBox(height: 150),
@@ -604,6 +635,23 @@ class _BlackBoxScreenState extends State<BlackBoxScreen> {
 
       child: child,
     );
+  }
+
+  // =========================================================
+  // FORMAT TIME AGO
+  // =========================================================
+
+  String _formatTimeAgo(String isoDate) {
+    try {
+      final date = DateTime.parse(isoDate);
+      final diff = DateTime.now().difference(date);
+      if (diff.inMinutes < 60) return "${diff.inMinutes}m ago";
+      if (diff.inHours < 24) return "${diff.inHours}h ago";
+      if (diff.inDays < 7) return "${diff.inDays}d ago";
+      return "Last week";
+    } catch (_) {
+      return "";
+    }
   }
 
   // =========================================================

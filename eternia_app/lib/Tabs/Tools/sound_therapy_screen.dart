@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
+import 'package:eternia_ef/providers/sound_provider.dart';
 
 class SoundTherapyScreen extends StatefulWidget {
   const SoundTherapyScreen({super.key});
@@ -26,7 +27,8 @@ class _SoundTherapyScreenState extends State<SoundTherapyScreen> with SingleTick
 
   final Color primaryColor = const Color(0xFF64FFE3);
 
-  final List<Map<String, String>> tracks = [
+  // Fallback tracks if backend returns empty
+  final List<Map<String, String>> _fallbackTracks = [
     {
       "title": "Celestial Echoes",
       "image": "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=800&q=80",
@@ -55,11 +57,29 @@ class _SoundTherapyScreenState extends State<SoundTherapyScreen> with SingleTick
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.4).animate(CurvedAnimation(parent: _breathingController, curve: Curves.easeInOut));
     
     _loadTrack(0);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<SoundProvider>(context, listen: false).fetchTracks();
+    });
+  }
+
+  List<Map<String, String>> get _activeTracks {
+    final soundProvider = Provider.of<SoundProvider>(context, listen: false);
+    final providerTracks = soundProvider.tracks;
+    if (providerTracks != null && providerTracks.isNotEmpty) {
+      return providerTracks.map((t) => <String, String>{
+        "title": t['title'] as String? ?? "Track",
+        "image": t['imageUrl'] as String? ?? t['image_url'] as String? ?? "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=800&q=80",
+        "desc": t['category'] as String? ?? t['description'] as String? ?? "",
+        "url": t['audioUrl'] as String? ?? t['audio_url'] as String? ?? "assets/audio/leberch-meditation-meditation-music-523576.mp3",
+      }).toList();
+    }
+    return _fallbackTracks;
   }
 
   Future<void> _loadTrack(int index) async {
     try {
-      await _audioPlayer.setAsset(tracks[index]['url']!);
+      await _audioPlayer.setAsset(_fallbackTracks[index % _fallbackTracks.length]['url']!);
     } catch (e) {
       debugPrint("Error loading audio: $e");
     }
@@ -99,6 +119,11 @@ class _SoundTherapyScreenState extends State<SoundTherapyScreen> with SingleTick
   @override
   Widget build(BuildContext context) {
     final isDark = Provider.of<ThemeProvider>(context).isDark;
+    Provider.of<SoundProvider>(context);
+
+    // Use provider tracks if available, otherwise fallback
+    final List<Map<String, String>> tracks = _activeTracks;
+
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF040B0D) : const Color(0xFFF6F3ED),
       body: Stack(
@@ -232,6 +257,7 @@ class _SoundTherapyScreenState extends State<SoundTherapyScreen> with SingleTick
   }
 
   Widget _buildPlaybackControls() {
+    final tracks = _activeTracks;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -279,6 +305,7 @@ class _SoundTherapyScreenState extends State<SoundTherapyScreen> with SingleTick
   }
 
   Widget _buildTrackPicker() {
+    final tracks = _activeTracks;
     return SizedBox(
       height: 80,
       child: ListView.builder(

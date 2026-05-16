@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
+import 'package:eternia_ef/providers/appointments_provider.dart';
 import 'package:eternia_ef/Tabs/ConnectPage/recommend_screen.dart';
 
 class ExpertGuidanceScreen extends StatefulWidget {
@@ -30,6 +31,14 @@ class _ExpertGuidanceScreenState extends State<ExpertGuidanceScreen> {
     "Academic Stress",
     "Relationships",
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AppointmentsProvider>(context, listen: false).fetchExperts();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -388,6 +397,72 @@ class _ExpertGuidanceScreenState extends State<ExpertGuidanceScreen> {
     Color textSecondary,
     Color textTertiary,
   ) {
+    // ── Backend experts (live data) ──────────────────────────────────
+    final appointmentsProvider = Provider.of<AppointmentsProvider>(context);
+    final providerExperts = appointmentsProvider.experts;
+
+    // Show a spinner while the first fetch is in-flight
+    if (appointmentsProvider.isLoading && providerExperts == null) {
+      return [
+        const Center(
+          child: Padding(
+            padding: EdgeInsets.all(32.0),
+            child: CircularProgressIndicator(),
+          ),
+        ),
+      ];
+    }
+
+    // Use backend data when available
+    if (providerExperts != null && providerExperts.isNotEmpty) {
+      return providerExperts.map((e) {
+        final name =
+            e['name'] as String? ?? e['username'] as String? ?? "Expert";
+        final specialty =
+            e['specialty'] as String? ?? e['role'] as String? ?? "Counselor";
+        final yearsExp = e['yearsExp'];
+        final experience =
+            e['experience'] as String? ??
+            (yearsExp != null ? '$yearsExp Years' : "N/A");
+        final sessions =
+            e['totalSessions']?.toString() ??
+            e['sessions_count']?.toString() ??
+            "N/A";
+        final rating = (e['rating'] as num?)?.toStringAsFixed(1) ?? "5.0";
+        final isOnline = e['isOnline'] == true || e['status'] == 'online';
+        final status = isOnline ? "ONLINE NOW" : "AVAILABLE";
+        final avatarUrl =
+            e['avatarUrl'] as String? ??
+            e['avatar'] as String? ??
+            "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&q=80";
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: _buildExpertCard(
+            name: name,
+            specialty: specialty,
+            experience: experience,
+            sessions: sessions,
+            rating: rating,
+            status: status,
+            isOnline: isOnline,
+            avatarUrl: avatarUrl,
+            illustrationPath: "assets/figma/moon.png",
+            buttonText: "Book Session",
+            buttonIcon: Icons.arrow_forward,
+            isDark: isDark,
+            primary: primary,
+            cardColor: cardColor,
+            borderColor: borderColor,
+            textPrimary: textPrimary,
+            textSecondary: textSecondary,
+            textTertiary: textTertiary,
+          ),
+        );
+      }).toList();
+    }
+
+    // ── Hardcoded fallback list ───────────────────────────────────────
     final allExperts = [
       {
         'name': "Aria Vance",

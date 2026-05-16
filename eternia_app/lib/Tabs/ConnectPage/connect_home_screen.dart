@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
+import 'package:eternia_ef/providers/peers_provider.dart';
 
 class ConnectHomeScreen extends StatefulWidget {
   final VoidCallback onExpertConnect;
@@ -35,6 +36,14 @@ class _ConnectHomeScreenState extends State<ConnectHomeScreen> {
     {'label': 'Okay', 'emoji': '🙂'},
     {'label': 'Good', 'emoji': '😊'},
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<PeersProvider>(context, listen: false).fetchInterns();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

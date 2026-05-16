@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
+import 'package:eternia_ef/providers/blackbox_provider.dart';
 
 class VoiceRecordingScreen extends StatefulWidget {
   const VoiceRecordingScreen({super.key});
@@ -16,6 +17,7 @@ class _VoiceRecordingScreenState extends State<VoiceRecordingScreen> {
   bool isPaused = false;
   int seconds = 0;
   Timer? timer;
+  bool _isSending = false;
 
   @override
   void initState() {
@@ -41,6 +43,41 @@ class _VoiceRecordingScreenState extends State<VoiceRecordingScreen> {
     int min = s ~/ 60;
     int sec = s % 60;
     return "${min.toString().padLeft(2, '0')}:${sec.toString().padLeft(2, '0')}";
+  }
+
+  Future<void> _sendVoiceEntry() async {
+    if (_isSending) return;
+    setState(() => _isSending = true);
+    timer?.cancel(); // Stop timer while sending
+
+    // Create a voice entry using the recording duration as content
+    final duration = _formatTime(seconds);
+    final content = 'Voice entry — Duration: $duration';
+
+    final blackbox = Provider.of<BlackBoxProvider>(context, listen: false);
+    final success = await blackbox.createEntry(
+      content: content,
+      contentType: 'voice',
+      isPrivate: true,
+    );
+
+    if (!mounted) return;
+    setState(() => _isSending = false);
+
+    if (success) {
+      _showSuccessPopup();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            blackbox.error ?? 'Failed to save voice entry. Please try again.',
+          ),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+      // Resume timer if send failed
+      if (!isPaused) _startTimer();
+    }
   }
 
   void _showSuccessPopup() {
@@ -184,13 +221,15 @@ class _VoiceRecordingScreenState extends State<VoiceRecordingScreen> {
                             : Icons.pause_rounded,
                         primary.withOpacity(0.2),
                         primary,
-                        () => setState(() => isPaused = !isPaused),
+                        _isSending
+                            ? () {}
+                            : () => setState(() => isPaused = !isPaused),
                       ),
                       _circleBtn(
-                        Icons.send_rounded,
+                        _isSending ? Icons.hourglass_empty : Icons.send_rounded,
                         primary,
                         Colors.black,
-                        _showSuccessPopup,
+                        _sendVoiceEntry,
                       ),
                     ],
                   ),

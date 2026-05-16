@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import 'package:eternia_ef/Tabs/home_screen/MainNavigation.dart';
 import 'package:eternia_ef/Screens/onboarding_screen.dart/sign_in_screen.dart';
+import 'package:eternia_ef/Screens/onboarding_screen.dart/private_profile_screen.dart'
+    as onboarding_profile;
 import '../../../providers/theme_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../utils/theme_config.dart';
@@ -21,7 +22,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   bool obscurePassword = true;
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -52,13 +54,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         Icon(
                           Icons.arrow_back_ios_new,
                           size: 16,
-                          color: isDark ? Colors.white : SanctuaryTheme.lightPrimary,
+                          color: isDark
+                              ? Colors.white
+                              : SanctuaryTheme.lightPrimary,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           "Back",
                           style: GoogleFonts.playfairDisplay(
-                            color: isDark ? Colors.white : SanctuaryTheme.lightPrimary,
+                            color: isDark
+                                ? Colors.white
+                                : SanctuaryTheme.lightPrimary,
                             fontSize: 18,
                           ),
                         ),
@@ -102,9 +108,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         padding: const EdgeInsets.all(26),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
-                          color: (isDark ? Colors.white.withOpacity(0.04) : Colors.white.withOpacity(0.92)),
+                          color: (isDark
+                              ? Colors.white.withOpacity(0.04)
+                              : Colors.white.withOpacity(0.92)),
                           border: Border.all(
-                            color: (isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE7E2D8)),
+                            color: (isDark
+                                ? Colors.white.withOpacity(0.08)
+                                : const Color(0xFFE7E2D8)),
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -120,7 +130,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             Text(
                               "Sign up",
                               style: GoogleFonts.playfairDisplay(
-                                color: isDark ? Colors.white : SanctuaryTheme.lightPrimary,
+                                color: isDark
+                                    ? Colors.white
+                                    : SanctuaryTheme.lightPrimary,
                                 fontSize: 54,
                                 height: 1,
                               ),
@@ -129,7 +141,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             Text(
                               "Create a new identity to\nstart your sanctuary\njourney",
                               style: GoogleFonts.poppins(
-                                color: isDark ? Colors.white70 : const Color(0xFF70737C),
+                                color: isDark
+                                    ? Colors.white70
+                                    : const Color(0xFF70737C),
                                 fontSize: 15,
                                 height: 2,
                               ),
@@ -206,51 +220,87 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               child: Consumer<AuthProvider>(
                                 builder: (context, auth, _) {
                                   return GestureDetector(
-                                    onTap: auth.isLoading ? null : () async {
-                                      final username = usernameController.text.trim();
-                                      final password = passwordController.text;
-                                      final confirm = confirmPasswordController.text;
+                                    onTap: auth.isLoading
+                                        ? null
+                                        : () async {
+                                            final username = usernameController
+                                                .text
+                                                .trim();
+                                            final password =
+                                                passwordController.text;
+                                            final confirm =
+                                                confirmPasswordController.text;
 
-                                      if (username.isEmpty || password.isEmpty) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text("Please fill all fields")),
-                                        );
-                                        return;
-                                      }
+                                            if (username.isEmpty ||
+                                                password.isEmpty) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    "Please fill all fields",
+                                                  ),
+                                                ),
+                                              );
+                                              return;
+                                            }
 
-                                      if (password != confirm) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text("Passwords do not match")),
-                                        );
-                                        return;
-                                      }
+                                            if (password != confirm) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    "Passwords do not match",
+                                                  ),
+                                                ),
+                                              );
+                                              return;
+                                            }
 
-                                      if (password.length < 8) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text("Password must be at least 8 characters")),
-                                        );
-                                        return;
-                                      }
+                                            if (password.length < 8) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    "Password must be at least 8 characters",
+                                                  ),
+                                                ),
+                                              );
+                                              return;
+                                            }
 
-                                      final success = await auth.register(username, password);
-                                      if (success) {
-                                        if (mounted) {
-                                          Navigator.pushAndRemoveUntil(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => MainNavigation(),
-                                            ),
-                                            (route) => false,
-                                          );
-                                        }
-                                      } else {
-                                        if (mounted) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text("Username already exists or registration failed")),
-                                          );
-                                        }
-                                      }
-                                    },
+                                            final success = await auth.register(
+                                              username,
+                                              password,
+                                            );
+                                            if (success) {
+                                              if (mounted) {
+                                                Navigator.pushAndRemoveUntil(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        const onboarding_profile.PrivateProfileScreen(),
+                                                  ),
+                                                  (route) => false,
+                                                );
+                                              }
+                                            } else {
+                                              if (mounted) {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      auth.error ??
+                                                          "Registration failed",
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            }
+                                          },
                                     child: Container(
                                       height: 62,
                                       decoration: BoxDecoration(
@@ -263,34 +313,51 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         ),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: primaryColor.withOpacity(0.28),
+                                            color: primaryColor.withOpacity(
+                                              0.28,
+                                            ),
                                             blurRadius: 24,
                                             offset: const Offset(0, 10),
                                           ),
                                         ],
                                       ),
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
-                                          auth.isLoading 
-                                            ? const SizedBox(
-                                                height: 20, 
-                                                width: 20, 
-                                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black)
-                                              )
-                                            : Text(
-                                                "CREATE ACCOUNT",
-                                                style: GoogleFonts.poppins(
-                                                  color: const Color.fromARGB(255, 16, 16, 16),
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.w600,
+                                          auth.isLoading
+                                              ? const SizedBox(
+                                                  height: 20,
+                                                  width: 20,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        color: Colors.black,
+                                                      ),
+                                                )
+                                              : Text(
+                                                  "CREATE ACCOUNT",
+                                                  style: GoogleFonts.poppins(
+                                                    color: const Color.fromARGB(
+                                                      255,
+                                                      16,
+                                                      16,
+                                                      16,
+                                                    ),
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
                                                 ),
-                                              ),
                                           const SizedBox(width: 12),
                                           if (!auth.isLoading)
                                             const Icon(
                                               Icons.person_add_outlined,
-                                              color: Color.fromARGB(255, 2, 2, 2),
+                                              color: Color.fromARGB(
+                                                255,
+                                                2,
+                                                2,
+                                                2,
+                                              ),
                                             ),
                                         ],
                                       ),
@@ -310,7 +377,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     TextSpan(
                                       text: "Already have an account? ",
                                       style: GoogleFonts.poppins(
-                                        color: isDark ? Colors.white70 : SanctuaryTheme.lightPrimary.withOpacity(0.6),
+                                        color: isDark
+                                            ? Colors.white70
+                                            : SanctuaryTheme.lightPrimary
+                                                  .withOpacity(0.6),
                                         fontSize: 14,
                                       ),
                                     ),
@@ -321,7 +391,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                           Navigator.pushReplacement(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) => SignInScreen(),
+                                              builder: (context) =>
+                                                  SignInScreen(),
                                             ),
                                           );
                                         },
@@ -348,7 +419,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       footerItem(Icons.shield_outlined, "ENCRYPTED", isDark),
-                      footerItem(Icons.visibility_off_outlined, "ANONYMOUS", isDark),
+                      footerItem(
+                        Icons.visibility_off_outlined,
+                        "ANONYMOUS",
+                        isDark,
+                      ),
                       footerItem(Icons.gpp_good_outlined, "DPDP", isDark),
                     ],
                   ),
@@ -396,7 +471,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
           prefixIcon: Icon(
             icon,
-            color: isDark ? Colors.white70 : SanctuaryTheme.lightPrimary.withOpacity(0.7),
+            color: isDark
+                ? Colors.white70
+                : SanctuaryTheme.lightPrimary.withOpacity(0.7),
           ),
           suffixIcon: isPassword
               ? GestureDetector(
@@ -406,8 +483,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     });
                   },
                   child: Icon(
-                    obscurePassword ? Icons.visibility_off_outlined : Icons.visibility,
-                    color: isDark ? Colors.white54 : SanctuaryTheme.lightPrimary.withOpacity(0.54),
+                    obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility,
+                    color: isDark
+                        ? Colors.white54
+                        : SanctuaryTheme.lightPrimary.withOpacity(0.54),
                   ),
                 )
               : null,
@@ -422,7 +503,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         Icon(
           icon,
           size: 14,
-          color: isDark ? Colors.white38 : SanctuaryTheme.lightPrimary.withOpacity(0.38),
+          color: isDark
+              ? Colors.white38
+              : SanctuaryTheme.lightPrimary.withOpacity(0.38),
         ),
         const SizedBox(width: 6),
         Text(

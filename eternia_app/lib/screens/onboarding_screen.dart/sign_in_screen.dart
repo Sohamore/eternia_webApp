@@ -348,7 +348,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                         } else {
                                           if (mounted) {
                                             ScaffoldMessenger.of(context).showSnackBar(
-                                              const SnackBar(content: Text("Invalid username or password")),
+                                              SnackBar(content: Text(auth.error ?? "Invalid username or password")),
                                             );
                                           }
                                         }

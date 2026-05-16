@@ -6,9 +6,23 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
+import 'package:eternia_ef/providers/appointments_provider.dart';
 
-class SessionHistoryScreen extends StatelessWidget {
+class SessionHistoryScreen extends StatefulWidget {
   const SessionHistoryScreen({super.key});
+
+  @override
+  State<SessionHistoryScreen> createState() => _SessionHistoryScreenState();
+}
+
+class _SessionHistoryScreenState extends State<SessionHistoryScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AppointmentsProvider>(context, listen: false).fetchHistory();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,14 +33,6 @@ class SessionHistoryScreen extends StatelessWidget {
     final Color dangerColor = const Color(0xFFD9534F);
     final Color bg = isDark ? const Color(0xFF071011) : const Color(0xFFF9F8F4);
     final Color textColor = isDark ? Colors.white : const Color(0xFF1B2722);
-
-    final sessions = [
-      {"counselor": "Dr. Aria Vance", "type": "Video Therapy", "date": "Dec 12, 2024", "time": "10:00 AM", "duration": "50 min", "status": "Completed"},
-      {"counselor": "Julian Thorne", "type": "Peer Support Chat", "date": "Dec 8, 2024", "time": "02:30 PM", "duration": "35 min", "status": "Completed"},
-      {"counselor": "Lila Chen", "type": "Guided Meditation", "date": "Dec 3, 2024", "time": "08:00 AM", "duration": "45 min", "status": "Completed"},
-      {"counselor": "Dr. Silas Thorne", "type": "Video Therapy", "date": "Nov 28, 2024", "time": "11:00 AM", "duration": "50 min", "status": "Cancelled"},
-      {"counselor": "Dr. Aria Vance", "type": "Initial Assessment", "date": "Nov 15, 2024", "time": "01:00 PM", "duration": "60 min", "status": "Completed"},
-    ];
 
     return Scaffold(
       backgroundColor: bg,
@@ -39,20 +45,51 @@ class SessionHistoryScreen extends StatelessWidget {
               child: _buildHeader(context, textColor, primaryColor),
             ),
             Expanded(
-              child: ListView.builder(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                itemCount: sessions.length,
-                itemBuilder: (context, index) {
-                  final s = sessions[index];
-                  final isLast = index == sessions.length - 1;
-                  return _buildTimelineItem(
-                    context, 
-                    s, 
-                    isDark, 
-                    primaryColor, 
-                    dangerColor, 
-                    isLast
+              child: Consumer<AppointmentsProvider>(
+                builder: (context, appointmentsProvider, _) {
+                  if (appointmentsProvider.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (appointmentsProvider.error != null) {
+                    return Center(child: Text(appointmentsProvider.error!, style: GoogleFonts.poppins(color: Colors.red)));
+                  }
+                  final sessions = appointmentsProvider.appointments;
+                  if (sessions == null || sessions.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.history_outlined, color: primaryColor.withOpacity(0.5), size: 48),
+                          const SizedBox(height: 16),
+                          Text("No session history yet", style: GoogleFonts.poppins(color: isDark ? Colors.white70 : Colors.black54, fontSize: 14)),
+                        ],
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    itemCount: sessions.length,
+                    itemBuilder: (context, index) {
+                      final s = sessions[index];
+                      final isLast = index == sessions.length - 1;
+                      final sessionMap = <String, String>{
+                        "counselor": s['expertName'] as String? ?? s['expert_name'] as String? ?? "Counselor",
+                        "type": s['sessionType'] as String? ?? s['session_type'] as String? ?? "Session",
+                        "date": _formatDate(s['slotTime'] as String? ?? s['slot_time'] as String? ?? ""),
+                        "time": _formatTimeOnly(s['slotTime'] as String? ?? s['slot_time'] as String? ?? ""),
+                        "duration": s['duration'] as String? ?? "50 min",
+                        "status": s['status'] as String? ?? "Completed",
+                      };
+                      return _buildTimelineItem(
+                        context,
+                        sessionMap,
+                        isDark,
+                        primaryColor,
+                        dangerColor,
+                        isLast
+                      );
+                    },
                   );
                 },
               ),
@@ -61,6 +98,27 @@ class SessionHistoryScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _formatDate(String isoDate) {
+    try {
+      final date = DateTime.parse(isoDate);
+      final months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      return "${months[date.month - 1]} ${date.day}, ${date.year}";
+    } catch (_) {
+      return isoDate;
+    }
+  }
+
+  String _formatTimeOnly(String isoDate) {
+    try {
+      final date = DateTime.parse(isoDate);
+      final hour = date.hour > 12 ? date.hour - 12 : date.hour;
+      final amPm = date.hour >= 12 ? "PM" : "AM";
+      return "${hour == 0 ? 12 : hour}:${date.minute.toString().padLeft(2, '0')} $amPm";
+    } catch (_) {
+      return "";
+    }
   }
 
   Widget _buildHeader(BuildContext context, Color textColor, Color primaryColor) {

@@ -10,6 +10,7 @@ import 'package:eternia_ef/Tabs/home_screen/MainNavigation.dart';
 
 import 'package:provider/provider.dart';
 import '../../../providers/theme_provider.dart';
+import '../../../providers/profiles_provider.dart';
 import '../../../utils/theme_config.dart';
 
 class PrivateProfileScreen extends StatefulWidget {
@@ -21,6 +22,7 @@ class PrivateProfileScreen extends StatefulWidget {
 
 class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
   bool isPhoneChecked = false;
+  bool _isSaving = false;
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
@@ -30,7 +32,9 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<ThemeProvider>(context);
     final isDark = provider.isDark;
-    final primaryColor = isDark ? SanctuaryTheme.darkPrimary : SanctuaryTheme.lightPrimary;
+    final primaryColor = isDark
+        ? SanctuaryTheme.darkPrimary
+        : SanctuaryTheme.lightPrimary;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -245,7 +249,6 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
                       isDark: isDark,
                     ),
 
-
                     const SizedBox(height: 16),
 
                     // ==================================================
@@ -273,7 +276,9 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
                                 : Colors.white,
 
                             border: Border.all(
-                              color: isDark ? Colors.white10 : const Color(0xFFE7E2D8),
+                              color: isDark
+                                  ? Colors.white10
+                                  : const Color(0xFFE7E2D8),
                             ),
                           ),
 
@@ -341,7 +346,7 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
                     //   isDark: isDark,
                     // ),
 
-                   // const SizedBox(height: 18),
+                    // const SizedBox(height: 18),
 
                     // ==================================================
                     // NOT VERIFIED MESSAGE
@@ -494,16 +499,67 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
                     // BUTTON
                     // ==================================================
                     GestureDetector(
-                      onTap: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const MainNavigation(),
-                          ),
-                          (route) => false,
-                        );
-                      },
-                      child: const GlassButton(text: "Activate Account"),
+                      onTap: _isSaving
+                          ? null
+                          : () async {
+                              final name = nameController.text.trim();
+                              final phone = phoneController.text.trim();
+
+                              // Save profile data if provided
+                              if (name.isNotEmpty || phone.isNotEmpty) {
+                                setState(() => _isSaving = true);
+                                try {
+                                  final profilesProvider =
+                                      Provider.of<ProfilesProvider>(
+                                        context,
+                                        listen: false,
+                                      );
+
+                                  // Update base profile with display name if provided
+                                  if (name.isNotEmpty) {
+                                    await profilesProvider.updateProfile({
+                                      'display_name': name,
+                                    });
+                                  }
+
+                                  // Update emergency contact with phone if provided
+                                  if (phone.isNotEmpty) {
+                                    await profilesProvider
+                                        .updateEmergencyContact(
+                                          phone: phone,
+                                          contactIsSelf: isPhoneChecked,
+                                        );
+                                  }
+                                } catch (_) {
+                                  // Silently proceed even if profile save fails
+                                  // User can update later from settings
+                                }
+                                if (mounted) setState(() => _isSaving = false);
+                              }
+
+                              if (mounted) {
+                                Navigator.pushAndRemoveUntil(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        const MainNavigation(),
+                                  ),
+                                  (route) => false,
+                                );
+                              }
+                            },
+                      child: _isSaving
+                          ? const Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            )
+                          : const GlassButton(text: "Activate Account"),
                     ),
 
                     const SizedBox(height: 40),

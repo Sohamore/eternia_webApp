@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
+import 'package:eternia_ef/providers/profiles_provider.dart';
+import 'package:eternia_ef/providers/auth_provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -15,15 +17,25 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  static String _savedName = "Sejal Rai";
-  static String _savedBio = "Finding peace in the digital sanctuary.";
-  static String _savedEmail = "sejal@eternia.app";
+  late TextEditingController _nameController;
+  late TextEditingController _bioController;
+  late TextEditingController _emailController;
+  bool _isSaving = false;
 
-  late final _nameController = TextEditingController(text: _savedName);
-  late final _bioController = TextEditingController(text: _savedBio);
-  late final _emailController = TextEditingController(text: _savedEmail);
+  @override
+  void initState() {
+    super.initState();
+    final profilesProvider = Provider.of<ProfilesProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final profile = profilesProvider.profile;
+    final user = authProvider.userProfile;
 
-  void _saveProfile() {
+    _nameController = TextEditingController(text: profile?['displayName'] ?? user?['username'] ?? "");
+    _bioController = TextEditingController(text: profile?['bio'] ?? "");
+    _emailController = TextEditingController(text: profile?['email'] ?? user?['email'] ?? "");
+  }
+
+  Future<void> _saveProfile() async {
     final name = _nameController.text.trim();
     final bio = _bioController.text.trim();
     final email = _emailController.text.trim();
@@ -42,21 +54,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
 
-    setState(() {
-      _savedName = name;
-      _savedBio = bio;
-      _savedEmail = email;
+    setState(() => _isSaving = true);
+
+    final success = await Provider.of<ProfilesProvider>(context, listen: false).updateProfile({
+      'displayName': name,
+      'bio': bio,
+      'email': email,
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Profile updated successfully.")),
-    );
+    setState(() => _isSaving = false);
 
-    Navigator.pop(context, {
-      "name": _savedName,
-      "bio": _savedBio,
-      "email": _savedEmail,
-    });
+    if (success) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Profile updated successfully.")),
+        );
+        Navigator.pop(context, {
+          "name": name,
+          "bio": bio,
+          "email": email,
+        });
+      }
+    } else {
+      if (mounted) {
+        final error = Provider.of<ProfilesProvider>(context, listen: false).error;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error ?? "Failed to update profile.")),
+        );
+      }
+    }
   }
 
   void _pickImage() {
