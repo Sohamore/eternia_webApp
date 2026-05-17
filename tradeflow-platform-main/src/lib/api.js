@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const hostname = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || (import.meta.env.DEV ? `http://${hostname}:5000` : 'https://eternia-ef-prisma.onrender.com');
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || (import.meta.env.DEV ? `http://${hostname}:3001` : 'https://eternia-ef-prisma.onrender.com');
 
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,

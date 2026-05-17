@@ -16,9 +16,19 @@ const PORT = process.env.PORT || 3001;
 // app.use(helmet());
 app.use(compression());
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? process.env.FRONTEND_URL 
-    : true, // true allows the origin of the request
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    const isLocalhost = /^http:\/\/localhost(:\d+)?$/.test(origin);
+    const isAllowed = process.env.FRONTEND_URL && (origin === process.env.FRONTEND_URL || origin.startsWith(process.env.FRONTEND_URL));
+    
+    if (isAllowed || isLocalhost || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],

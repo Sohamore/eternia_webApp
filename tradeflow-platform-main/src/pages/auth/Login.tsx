@@ -82,7 +82,23 @@
         setLockoutUntil(null);
         
         toast.success("Welcome back!");
-      } catch {
+      } catch (err: any) {
+        console.error("Login failed error:", err);
+        const errMsg = err?.message || "Login failed. Please try again.";
+        
+        // Check for network/connection failure
+        const isNetworkError = 
+          errMsg.toLowerCase().includes("network") || 
+          errMsg.toLowerCase().includes("timeout") ||
+          errMsg.toLowerCase().includes("failed to fetch") ||
+          err?.code === "ERR_NETWORK" ||
+          err?.code === "ECONNABORTED";
+
+        if (isNetworkError) {
+          toast.error("Connection error: Cannot reach the backend. Please check if the server is running or if there is a CORS block.");
+          return;
+        }
+
         const newAttempts = loginAttempts + 1;
         setLoginAttempts(newAttempts);
         
@@ -90,7 +106,10 @@
           setLockoutUntil(Date.now() + LOCKOUT_DURATION_MS);
           toast.error("Too many failed attempts. Account locked for 5 minutes.");
         } else {
-          toast.error(`Invalid username or password (${MAX_LOGIN_ATTEMPTS - newAttempts} attempts remaining)`);
+          // If the backend returned a specific error message (e.g. 'Invalid credentials'), use it.
+          // Otherwise, fallback to the generic message.
+          const readableMsg = errMsg.includes("Login failed") ? "Invalid username or password" : errMsg;
+          toast.error(`${readableMsg} (${MAX_LOGIN_ATTEMPTS - newAttempts} attempts remaining)`);
         }
       } finally {
         setIsLoading(false);
