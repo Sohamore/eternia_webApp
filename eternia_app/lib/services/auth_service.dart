@@ -12,10 +12,10 @@ class AuthService {
   /// POST /auth/login
   /// Returns: {token, refreshToken, user, creditBalance}
   Future<Map<String, dynamic>> login(String username, String password) async {
-    final response = await _api.post('/auth/login', data: {
-      'username': username,
-      'password': password,
-    });
+    final response = await _api.post(
+      '/auth/login',
+      data: {'username': username, 'password': password},
+    );
     return Map<String, dynamic>.from(response.data as Map);
   }
 
@@ -38,19 +38,17 @@ class AuthService {
   /// POST /auth/send-otp
   /// Returns: {success, message}
   Future<Map<String, dynamic>> sendOtp(String email) async {
-    final response = await _api.post('/auth/send-otp', data: {
-      'email': email,
-    });
+    final response = await _api.post('/auth/send-otp', data: {'email': email});
     return Map<String, dynamic>.from(response.data as Map);
   }
 
   /// POST /auth/verify-otp
   /// Returns: {success, message}
   Future<Map<String, dynamic>> verifyOtp(String email, String otp) async {
-    final response = await _api.post('/auth/verify-otp', data: {
-      'email': email,
-      'otp': otp,
-    });
+    final response = await _api.post(
+      '/auth/verify-otp',
+      data: {'email': email, 'otp': otp},
+    );
     return Map<String, dynamic>.from(response.data as Map);
   }
 
@@ -61,11 +59,10 @@ class AuthService {
     String newPassword,
     String otp,
   ) async {
-    final response = await _api.post('/auth/reset-password-otp', data: {
-      'username': username,
-      'newPassword': newPassword,
-      'otp': otp,
-    });
+    final response = await _api.post(
+      '/auth/reset-password-otp',
+      data: {'username': username, 'newPassword': newPassword, 'otp': otp},
+    );
     return Map<String, dynamic>.from(response.data as Map);
   }
 
@@ -106,9 +103,20 @@ class AuthService {
   /// POST /auth/refresh
   /// Returns: {token, refreshToken}
   Future<Map<String, dynamic>> refresh(String refreshToken) async {
-    final response = await _api.post('/auth/refresh', data: {
-      'refreshToken': refreshToken,
-    });
+    final response = await _api.post(
+      '/auth/refresh',
+      data: {'refreshToken': refreshToken},
+    );
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  /// POST /auth/verify-institutional-code
+  /// Returns: {success, institutionName, institutionId, tempCredentialId}
+  Future<Map<String, dynamic>> verifyInstitutionalCode(String code) async {
+    final response = await _api.post(
+      '/auth/verify-institutional-code',
+      data: {'code': code},
+    );
     return Map<String, dynamic>.from(response.data as Map);
   }
 }

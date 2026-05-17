@@ -12,7 +12,8 @@ import '../../../providers/auth_provider.dart';
 import '../../../utils/theme_config.dart';
 
 class SignUpScreen extends StatefulWidget {
-  const SignUpScreen({super.key});
+  final String? institutionId;
+  const SignUpScreen({super.key, this.institutionId});
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
@@ -274,6 +275,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                             final success = await auth.register(
                                               username,
                                               password,
+                                              metadata:
+                                                  widget.institutionId != null
+                                                  ? {
+                                                      'institution_id':
+                                                          widget.institutionId,
+                                                    }
+                                                  : null,
                                             );
                                             if (success) {
                                               if (mounted) {

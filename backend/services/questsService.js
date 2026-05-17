@@ -1,11 +1,11 @@
-const prisma = require('../prisma/client');
+const prisma = require("../prisma/client");
 
-const WEEKLY_EARN_CAP = 5;
+const WEEKLY_EARN_CAP = 50;
 
 async function getQuests() {
   return prisma.questCard.findMany({
     where: { is_active: true },
-    orderBy: { xp_reward: 'asc' }
+    orderBy: { xp_reward: "asc" },
   });
 }
 
@@ -18,8 +18,8 @@ async function getTodayCompletions(userId) {
   return prisma.questCompletion.findMany({
     where: {
       user_id: userId,
-      completed_at: { gte: startOfDay, lte: endOfDay }
-    }
+      completed_at: { gte: startOfDay, lte: endOfDay },
+    },
   });
 }
 
@@ -32,13 +32,17 @@ async function completeQuest(userId, questId) {
     where: {
       user_id: userId,
       quest_id: questId,
-      completed_at: { gte: today }
-    }
+      completed_at: { gte: today },
+    },
   });
-  if (existing) throw Object.assign(new Error('Quest already completed today'), { status: 409 });
+  if (existing)
+    throw Object.assign(new Error("Quest already completed today"), {
+      status: 409,
+    });
 
   const quest = await prisma.questCard.findUnique({ where: { id: questId } });
-  if (!quest || !quest.is_active) throw Object.assign(new Error('Quest not found'), { status: 404 });
+  if (!quest || !quest.is_active)
+    throw Object.assign(new Error("Quest not found"), { status: 404 });
 
   // Check weekly ECC cap
   const now = new Date();
@@ -48,8 +52,8 @@ async function completeQuest(userId, questId) {
   startOfWeek.setHours(0, 0, 0, 0);
 
   const weeklyAgg = await prisma.creditTransaction.aggregate({
-    where: { user_id: userId, type: 'earn', created_at: { gte: startOfWeek } },
-    _sum: { delta: true }
+    where: { user_id: userId, type: "earn", created_at: { gte: startOfWeek } },
+    _sum: { delta: true },
   });
   const weeklyTotal = weeklyAgg._sum.delta || 0;
   const remaining = Math.max(0, WEEKLY_EARN_CAP - weeklyTotal);
@@ -61,7 +65,7 @@ async function completeQuest(userId, questId) {
         user_id: userId,
         quest_id: questId,
         completed_date: new Date(),
-      }
+      },
     });
 
     if (actualReward > 0) {
@@ -69,14 +73,18 @@ async function completeQuest(userId, questId) {
         data: {
           user_id: userId,
           delta: actualReward,
-          type: 'earn',
+          type: "earn",
           notes: `Quest completed: ${quest.title}`,
           reference_id: quest.id,
-        }
+        },
       });
     }
 
-    return { completion, reward: actualReward, weeklyTotal: weeklyTotal + actualReward };
+    return {
+      completion,
+      reward: actualReward,
+      weeklyTotal: weeklyTotal + actualReward,
+    };
   });
 }
 

@@ -228,4 +228,17 @@ class AuthProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
   }
+
+  Future<Map<String, dynamic>?> verifyInstitutionalCode(String code) async {
+    _error = null;
+    try {
+      final data = await _authService.verifyInstitutionalCode(code);
+      return data;
+    } on DioException catch (e) {
+      final apiError = ApiClient.classifyError(e);
+      _error = apiError.message;
+      notifyListeners();
+      return null;
+    }
+  }
 }
