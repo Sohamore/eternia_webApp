@@ -168,6 +168,7 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
+      // Restore actual OTP functionality
       await _authService.sendOtp(emailOrUsername);
       _isLoading = false;
       notifyListeners();
@@ -186,6 +187,7 @@ class AuthProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
+      // Restore actual verify OTP functionality
       await _authService.verifyOtp(emailOrUsername, otp);
       _isLoading = false;
       notifyListeners();

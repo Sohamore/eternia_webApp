@@ -1,7 +1,15 @@
 const bcrypt = require("bcryptjs");
 const prisma = require("../prisma/client");
 const { signToken, signRefreshToken } = require("../utils/jwt");
-const { generateInstCode, generateStudentId } = require("../utils/helpers");
+const { generateInstCode } = require("../utils/helpers");
+const crypto = require("crypto");
+
+// Crash-safe student ID — uses crypto random, never resets on restart
+function safeStudentId(instCode) {
+  const code = (instCode || "INDP").slice(0, 4).toUpperCase();
+  const random = crypto.randomBytes(4).toString("hex").toUpperCase();
+  return `ETN-${code}-${random}`;
+}
 const logger = require("../utils/logger");
 
 // ─── Fix 1: registerUser ────────────────────────────────────────────────────
@@ -32,7 +40,7 @@ async function registerUser(username, password, metadata = {}) {
   const role = metadata.role || "student";
   let studentId = null;
   if (role === "student") {
-    studentId = generateStudentId(metadata.institutionCode || "INDP");
+    studentId = safeStudentId(metadata.institutionCode || "INDP");
   }
 
   // Handle emergency contact from metadata

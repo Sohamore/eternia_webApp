@@ -1,21 +1,21 @@
 const nodemailer = require('nodemailer');
 
-// For now, this is a placeholder. 
-// You will need to provide real SMTP credentials to send actual emails.
-// Example for Gmail:
-// host: 'smtp.gmail.com',
-// auth: { user: 'your-email@gmail.com', pass: 'your-app-password' }
-
 async function sendEmail(to, subject, text, html) {
   try {
-    // Creating a test account if no real credentials provided
-    // In production, use a real service.
+    // Prevent hanging/timeouts in dev if no real credentials provided
+    const user = process.env.EMAIL_USER || 'placeholder';
+    if (user === 'placeholder') {
+      console.log(`[Email-Simulation] Would send email to ${to}: ${subject}`);
+      console.log(`[Email-Simulation] Content: ${text}`);
+      return { messageId: 'simulated-id' };
+    }
+
     let transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST || 'smtp.ethereal.email',
       port: process.env.EMAIL_PORT || 587,
       secure: false, // true for 465, false for other ports
       auth: {
-        user: process.env.EMAIL_USER || 'placeholder', 
+        user: user, 
         pass: process.env.EMAIL_PASS || 'placeholder',
       },
     });

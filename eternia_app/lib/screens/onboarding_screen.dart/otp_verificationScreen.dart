@@ -3,7 +3,7 @@
 // otp_verification_screen.dart
 // ==========================================================
 
-import 'package:eternia_ef/Screens/onboarding_screen.dart/private_profile_screen.dart';
+import 'package:eternia_ef/screens/onboarding_screen.dart/private_profile_screen.dart';
 import 'package:eternia_ef/widgets/glass_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -13,10 +13,24 @@ import '../../../providers/theme_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../utils/theme_config.dart';
 import 'create_new_password_screen.dart';
+import 'sign_up_screen.dart';
 
 class OTPVerificationScreen extends StatefulWidget {
   final String email;
-  const OTPVerificationScreen({super.key, required this.email});
+  /// 'signup' or 'reset'
+  final String mode;
+  final String? username;
+  final String? password;
+  final String? institutionId;
+
+  const OTPVerificationScreen({
+    super.key,
+    required this.email,
+    this.mode = 'reset',
+    this.username,
+    this.password,
+    this.institutionId,
+  });
 
   @override
   State<OTPVerificationScreen> createState() => _OTPVerificationScreenState();
@@ -318,21 +332,45 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                               return;
                             }
 
-                            final success = await auth.verifyOTP(widget.email, otp);
-                            if (success && mounted) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => CreateNewPasswordScreen(
-                                    username: widget.email,
-                                    otp: otp,
+                              if (widget.mode == 'signup') {
+                                // ── SIGNUP FLOW ──
+                                // Step 1: verify the OTP
+                                final otpOk = await auth.verifyOTP(widget.email, otp);
+                                if (!otpOk || !mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(auth.error ?? "Invalid OTP")),
+                                  );
+                                  return;
+                                }
+
+                                // Step 2: Route to SignUpScreen
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => SignUpScreen(
+                                      institutionId: widget.institutionId,
+                                      email: widget.email,
+                                    ),
                                   ),
-                                ),
-                              );
-                            } else if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Invalid OTP. Hint: 1234")),
-                              );
+                                );
+                            } else {
+                              // ── PASSWORD RESET FLOW ──
+                              final success = await auth.verifyOTP(widget.email, otp);
+                              if (success && mounted) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => CreateNewPasswordScreen(
+                                      username: widget.email,
+                                      otp: otp,
+                                    ),
+                                  ),
+                                );
+                              } else if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("Invalid OTP. Hint: 1234")),
+                                );
+                              }
                             }
                           },
                           child: GlassButton(

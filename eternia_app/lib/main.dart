@@ -28,7 +28,9 @@ import 'providers/selfhelp_provider.dart';
 import 'providers/notifications_provider.dart';
 import 'providers/profiles_provider.dart';
 
-import 'Screens/onboarding_screen.dart/onboarding_screen.dart';
+import 'screens/onboarding_screen.dart/onboarding_screen.dart';
+import 'screens/onboarding_screen.dart/VerifyCampusScreen.dart';
+import 'screens/onboarding_screen.dart/InstitutionalScanScreen.dart';
 import 'Tabs/home_screen/MainNavigation.dart';
 
 void main() {
@@ -109,11 +111,27 @@ class _AuthWrapper extends StatelessWidget {
       return const _SplashScreen();
     }
 
-    if (auth.isAuthenticated) {
-      return const MainNavigation();
+    if (!auth.isAuthenticated) {
+      return const OnboardingScreen();
     }
 
-    return const OnboardingScreen();
+    // ── Authenticated: determine onboarding step ──
+    final profile = auth.userProfile;
+
+    // Step 1: Institution not verified yet → show campus code entry
+    final institutionId = profile?['institution_id'] as String?;
+    if (institutionId == null) {
+      return const VerifyCampusScreen();
+    }
+
+    // Step 2: Institution linked but QR/ID not verified → show scan screen
+    final isVerified = profile?['is_verified'] as bool? ?? false;
+    if (!isVerified) {
+      return InstitutionalScanScreen(institutionId: institutionId);
+    }
+
+    // Step 3: Verified — go to main app
+    return const MainNavigation();
   }
 }
 

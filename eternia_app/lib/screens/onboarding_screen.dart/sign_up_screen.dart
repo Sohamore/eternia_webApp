@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import 'package:eternia_ef/Screens/onboarding_screen.dart/sign_in_screen.dart';
-import 'package:eternia_ef/Screens/onboarding_screen.dart/private_profile_screen.dart'
-    as onboarding_profile;
+import 'package:eternia_ef/screens/onboarding_screen.dart/sign_in_screen.dart';
+import 'package:eternia_ef/screens/onboarding_screen.dart/otp_verificationScreen.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../utils/theme_config.dart';
 
 class SignUpScreen extends StatefulWidget {
   final String? institutionId;
-  const SignUpScreen({super.key, this.institutionId});
+  final String? email;
+  const SignUpScreen({super.key, this.institutionId, this.email});
 
   @override
   State<SignUpScreen> createState() => _SignUpScreenState();
@@ -22,9 +22,25 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   bool obscurePassword = true;
   final TextEditingController usernameController = TextEditingController();
+  late final TextEditingController emailController;
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    emailController = TextEditingController(text: widget.email ?? "");
+  }
+
+  @override
+  void dispose() {
+    usernameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -173,6 +189,27 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                             const SizedBox(height: 24),
 
+                            // EMAIL LABEL
+                            Text(
+                              "EMAIL",
+                              style: GoogleFonts.poppins(
+                                color: primaryColor,
+                                fontSize: 12,
+                                letterSpacing: 2,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            buildTextField(
+                              controller: emailController,
+                              hint: "your@email.com (for OTP)",
+                              icon: Icons.email_outlined,
+                              isPassword: false,
+                              isDark: isDark,
+                            ),
+
+                            const SizedBox(height: 24),
+
                             // PASSWORD LABEL
                             Text(
                               "PASSWORD",
@@ -227,13 +264,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                             final username = usernameController
                                                 .text
                                                 .trim();
-                                            final password =
+                                            final email = emailController.text
+                                                .trim();
+                                            final pass =
                                                 passwordController.text;
                                             final confirm =
                                                 confirmPasswordController.text;
 
                                             if (username.isEmpty ||
-                                                password.isEmpty) {
+                                                email.isEmpty ||
+                                                pass.isEmpty) {
                                               ScaffoldMessenger.of(
                                                 context,
                                               ).showSnackBar(
@@ -245,8 +285,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                               );
                                               return;
                                             }
-
-                                            if (password != confirm) {
+                                            if (pass != confirm) {
                                               ScaffoldMessenger.of(
                                                 context,
                                               ).showSnackBar(
@@ -258,8 +297,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                               );
                                               return;
                                             }
-
-                                            if (password.length < 8) {
+                                            if (pass.length < 8) {
                                               ScaffoldMessenger.of(
                                                 context,
                                               ).showSnackBar(
@@ -274,7 +312,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                                             final success = await auth.register(
                                               username,
-                                              password,
+                                              pass,
                                               metadata:
                                                   widget.institutionId != null
                                                   ? {
@@ -283,30 +321,36 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                                     }
                                                   : null,
                                             );
-                                            if (success) {
-                                              if (mounted) {
-                                                Navigator.pushAndRemoveUntil(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const onboarding_profile.PrivateProfileScreen(),
+
+                                            if (success && mounted) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    "Registration successful. Please sign in.",
                                                   ),
-                                                  (route) => false,
-                                                );
-                                              }
-                                            } else {
-                                              if (mounted) {
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  SnackBar(
-                                                    content: Text(
-                                                      auth.error ??
-                                                          "Registration failed",
-                                                    ),
+                                                ),
+                                              );
+                                              Navigator.pushAndRemoveUntil(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      const SignInScreen(),
+                                                ),
+                                                (route) => false,
+                                              );
+                                            } else if (mounted) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    auth.error ??
+                                                        "Registration failed",
                                                   ),
-                                                );
-                                              }
+                                                ),
+                                              );
                                             }
                                           },
                                     child: Container(

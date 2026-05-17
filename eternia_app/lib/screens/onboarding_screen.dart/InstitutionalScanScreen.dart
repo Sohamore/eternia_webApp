@@ -15,7 +15,8 @@ import '../../../providers/theme_provider.dart';
 import '../../../utils/theme_config.dart';
 
 class InstitutionalScanScreen extends StatefulWidget {
-  const InstitutionalScanScreen({super.key});
+  final String? institutionId;
+  const InstitutionalScanScreen({super.key, this.institutionId});
 
   @override
   State<InstitutionalScanScreen> createState() =>
@@ -42,7 +43,9 @@ class _InstitutionalScanScreenState extends State<InstitutionalScanScreen> {
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const ResetPasswordScreen()),
+      MaterialPageRoute(
+        builder: (_) => ResetPasswordScreen(institutionId: widget.institutionId),
+      ),
     );
   }
 
@@ -362,14 +365,16 @@ class _InstitutionalScanScreenState extends State<InstitutionalScanScreen> {
                 // ==================================================
                 GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ResetPasswordScreen(),
-                      ),
-                    );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ResetPasswordScreen(
+                            institutionId: widget.institutionId,
+                          ),
+                        ),
+                      );
                   },
-                  child: const GlassButton(text: "Scan QR Code"),
+                  child: const GlassButton(text: "Proceed to Sign Up"),
                 ),
 
                 // GestureDetector(

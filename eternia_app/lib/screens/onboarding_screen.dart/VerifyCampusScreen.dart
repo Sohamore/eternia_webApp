@@ -1,5 +1,5 @@
 import 'package:eternia_ef/Screens/onboarding_screen.dart/sign_in_screen.dart';
-import 'package:eternia_ef/Screens/onboarding_screen.dart/sign_up_screen.dart';
+// import 'package:eternia_ef/Screens/onboarding_screen.dart/sign_up_screen.dart';
 import 'package:eternia_ef/Screens/onboarding_screen.dart/InstitutionalScanScreen.dart';
 import 'package:eternia_ef/widgets/glass_button.dart';
 import 'package:flutter/material.dart';
@@ -60,7 +60,8 @@ class _VerifyCampusScreenState extends State<VerifyCampusScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => SignUpScreen(institutionId: institutionId),
+            builder: (context) =>
+                InstitutionalScanScreen(institutionId: institutionId),
           ),
         );
       } else {
