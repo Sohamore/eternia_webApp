@@ -313,13 +313,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                             final success = await auth.register(
                                               username,
                                               pass,
-                                              metadata:
-                                                  widget.institutionId != null
-                                                  ? {
-                                                      'institution_id':
-                                                          widget.institutionId,
-                                                    }
-                                                  : null,
+                                              metadata: {
+                                                'email': email,
+                                                if (widget.institutionId != null)
+                                                  'institution_id': widget.institutionId,
+                                              },
                                             );
 
                                             if (success && mounted) {

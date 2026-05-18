@@ -15,7 +15,12 @@ import '../../../utils/theme_config.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String? institutionId;
-  const ResetPasswordScreen({super.key, this.institutionId});
+  final String mode; // 'signup' or 'reset'
+  const ResetPasswordScreen({
+    super.key,
+    this.institutionId,
+    this.mode = 'reset',
+  });
 
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
@@ -156,7 +161,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     // TITLE
                     // =================================================
                     Text(
-                      "Reset Password",
+                      widget.mode == 'signup' ? "Verify Email" : "Reset Password",
 
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 38,
@@ -169,7 +174,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     const SizedBox(height: 10),
 
                     Text(
-                      "Enter your email or pseudonym to receive a recovery code.",
+                      widget.mode == 'signup'
+                          ? "Enter your email to receive a registration verification code."
+                          : "Enter your email or pseudonym to receive a recovery code.",
 
                       style: TextStyle(
                         fontSize: 13,
@@ -187,7 +194,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     // LABEL
                     // =================================================
                     Text(
-                      "Account Identity",
+                      widget.mode == 'signup' ? "Email Address" : "Account Identity",
 
                       style: GoogleFonts.poppins(
                         fontSize: 12,
@@ -231,7 +238,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         decoration: InputDecoration(
                           border: InputBorder.none,
 
-                          hintText: "pseudonym@eternia.io",
+                          hintText: widget.mode == 'signup'
+                              ? "your-email@domain.com"
+                              : "pseudonym@eternia.io",
 
                           hintStyle: TextStyle(
                             color: isDark
@@ -417,9 +426,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                   final email = emailController.text.trim();
                                   if (email.isEmpty) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
+                                      SnackBar(
                                         content: Text(
-                                          "Please enter your username/email",
+                                          widget.mode == 'signup'
+                                              ? "Please enter your email"
+                                              : "Please enter your username/email",
                                         ),
                                       ),
                                     );
@@ -433,7 +444,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                       MaterialPageRoute(
                                         builder: (context) => OTPVerificationScreen(
                                           email: email,
-                                          mode: 'signup',
+                                          mode: widget.mode,
                                           institutionId: widget.institutionId,
                                         ),
                                       ),
@@ -451,7 +462,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           child: GlassButton(
                             text: auth.isLoading
                                 ? "Sending..."
-                                : "Send Reset Code",
+                                : (widget.mode == 'signup'
+                                    ? "Send Code"
+                                    : "Send Reset Code"),
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w600,
                               fontSize: 18,

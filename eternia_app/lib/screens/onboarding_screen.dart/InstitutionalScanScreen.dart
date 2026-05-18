@@ -44,7 +44,10 @@ class _InstitutionalScanScreenState extends State<InstitutionalScanScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ResetPasswordScreen(institutionId: widget.institutionId),
+        builder: (_) => ResetPasswordScreen(
+          institutionId: widget.institutionId,
+          mode: 'signup',
+        ),
       ),
     );
   }
@@ -211,7 +214,71 @@ class _InstitutionalScanScreenState extends State<InstitutionalScanScreen> {
                         // ======================================
                         MobileScanner(
                           controller: controller,
-
+                          errorBuilder: (context, error) {
+                            return Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                                margin: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.65),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.redAccent.withOpacity(0.3),
+                                  ),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.camera_alt_outlined,
+                                      color: Colors.redAccent,
+                                      size: 32,
+                                    ),
+                                    const SizedBox(height: 6),
+                                    const Text(
+                                      "Camera Inactive",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      error.toString().contains("permissionDenied")
+                                          ? "Camera permission denied.\nPlease allow Camera access in your phone Settings:\nSettings > Apps > Eternia > Permissions"
+                                          : (error.errorDetails?.message ?? error.toString()),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 4,
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 11.5,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    ElevatedButton.icon(
+                                      onPressed: () {
+                                        controller.start();
+                                      },
+                                      icon: const Icon(Icons.refresh, size: 14),
+                                      label: const Text("Request / Retry"),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF53B29A),
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        minimumSize: Size.zero,
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                           onDetect: (capture) async {
                             if (scanned) return;
 
@@ -370,6 +437,7 @@ class _InstitutionalScanScreenState extends State<InstitutionalScanScreen> {
                         MaterialPageRoute(
                           builder: (context) => ResetPasswordScreen(
                             institutionId: widget.institutionId,
+                            mode: 'signup',
                           ),
                         ),
                       );

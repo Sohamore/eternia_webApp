@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 class EnvConfig {
   static const String _defaultBaseUrl =
-      'https://eternia-ef-prisma.onrender.com/api';
+      'http://10.197.129.105:5000/api';
 
   static String get baseUrl {
     const override = String.fromEnvironment('BASE_URL', defaultValue: '');
