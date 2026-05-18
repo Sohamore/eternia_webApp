@@ -29,12 +29,23 @@ async function registerUser(username, password, metadata = {}) {
     throw Object.assign(new Error("Username already taken"), { status: 409 });
   }
 
-  // Generate truly unique internal email (never shown to users - avoids global collision)
-  const uniqueTag = require("crypto")
-    .randomUUID()
-    .replace(/-/g, "")
-    .slice(0, 10);
-  const email = `${cleanUsername}_${uniqueTag}@eternia.local`;
+  // Check if real email is already taken
+  let email = metadata.email ? metadata.email.toLowerCase().trim() : null;
+  if (email) {
+    const existingEmail = await prisma.user.findUnique({
+      where: { email: email },
+    });
+    if (existingEmail) {
+      throw Object.assign(new Error("Email already registered"), { status: 409 });
+    }
+  } else {
+    // Generate truly unique internal email (never shown to users - avoids global collision)
+    const uniqueTag = require("crypto")
+      .randomUUID()
+      .replace(/-/g, "")
+      .slice(0, 10);
+    email = `${cleanUsername}_${uniqueTag}@eternia.local`;
+  }
 
   const password_hash = await bcrypt.hash(password, 12);
   const role = metadata.role || "student";
@@ -121,20 +132,16 @@ async function loginUser(username, password) {
   let user = null;
   let profile = null;
 
-  if (
-    input.includes("@") &&
-    !input.endsWith("@eternia.local") &&
-    !input.endsWith("@eternia.com")
-  ) {
-    // Real email address - try direct lookup
+  // 1. Direct email lookup
+  if (input.includes("@")) {
     user = await prisma.user.findUnique({ where: { email: input } });
     if (user) {
       profile = await prisma.profile.findUnique({ where: { id: user.id } });
     }
   }
 
+  // 2. Username lookup via Profile
   if (!user) {
-    // Username lookup via Profile (primary path for app + website users)
     profile = await prisma.profile.findFirst({
       where: { username: input },
     });
@@ -143,8 +150,8 @@ async function loginUser(username, password) {
     }
   }
 
-  if (!user) {
-    // Legacy fallback: old-style @eternia.local email (pre-UUID accounts)
+  // 3. Legacy fallback: old-style @eternia.local email
+  if (!user && !input.includes("@")) {
     const legacyEmail = `${input}@eternia.local`;
     user = await prisma.user.findUnique({ where: { email: legacyEmail } });
     if (user) {
