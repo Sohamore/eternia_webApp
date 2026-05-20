@@ -1,4 +1,5 @@
 const appointmentsService = require('../services/appointmentsService');
+const appointmentMessagesService = require('../services/appointmentMessagesService');
 
 async function getExperts(req, res, next) {
   try {
@@ -30,10 +31,10 @@ async function getMyAppointments(req, res, next) {
 
 async function createAppointment(req, res, next) {
   try {
-    const { expert_id, slot_id, slot_time, session_type, credits_charged } = req.body;
+    const { expert_id, slot_id, slot_time, session_type, credits_charged, room_id } = req.body;
     if (!expert_id || !slot_time) return res.status(400).json({ error: 'expert_id and slot_time required' });
     const appointment = await appointmentsService.createAppointment(
-      req.user.id, expert_id, slot_id, slot_time, session_type, credits_charged
+      req.user.id, expert_id, slot_id, slot_time, session_type, credits_charged, room_id
     );
     res.status(201).json({ appointment });
   } catch (err) { next(err); }
@@ -87,7 +88,40 @@ async function escalateAppointment(req, res, next) {
   } catch (err) { next(err); }
 }
 
+async function getAppointmentById(req, res, next) {
+  try {
+    const appointment = await appointmentsService.getAppointmentById(req.user.id, req.params.id);
+    if (!appointment) return res.status(404).json({ error: 'Appointment not found' });
+    res.json({ appointment });
+  } catch (err) { next(err); }
+}
+
+async function updateAppointmentRoom(req, res, next) {
+  try {
+    const { room_id } = req.body;
+    if (!room_id) return res.status(400).json({ error: 'room_id is required' });
+    const appointment = await appointmentsService.updateAppointmentRoom(req.user.id, req.params.id, room_id);
+    res.json({ appointment });
+  } catch (err) { next(err); }
+}
+
+async function getAppointmentMessages(req, res, next) {
+  try {
+    const messages = await appointmentMessagesService.getAppointmentMessages(req.user.id, req.params.id);
+    res.json({ messages });
+  } catch (err) { next(err); }
+}
+
+async function sendAppointmentMessage(req, res, next) {
+  try {
+    const { content } = req.body;
+    const message = await appointmentMessagesService.sendAppointmentMessage(req.user.id, req.params.id, content);
+    res.status(201).json({ message });
+  } catch (err) { next(err); }
+}
+
 module.exports = { 
   getExperts, getSlots, getMySlots, getMyAppointments, createAppointment, cancelAppointment, 
-  addSlot, deleteSlot, completeAppointment, rescheduleAppointment, escalateAppointment
+  addSlot, deleteSlot, completeAppointment, rescheduleAppointment, escalateAppointment,
+  getAppointmentById, updateAppointmentRoom, getAppointmentMessages, sendAppointmentMessage
 };

@@ -44,7 +44,7 @@ async function getUserAppointments(userId, role) {
   });
 }
 
-async function createAppointment(studentId, expertId, slotId, slotTime, sessionType, creditsCharged) {
+async function createAppointment(studentId, expertId, slotId, slotTime, sessionType, creditsCharged, roomId = null) {
   // Verify slot availability
   if (slotId) {
     const slot = await prisma.expertAvailability.findFirst({
@@ -63,6 +63,7 @@ async function createAppointment(studentId, expertId, slotId, slotTime, sessionT
         session_type: sessionType || 'video',
         credits_charged: creditsCharged || 0,
         status: 'pending',
+        room_id: roomId,
       },
       include: {
         expert: { select: { id: true, username: true, specialty: true } }
@@ -267,8 +268,41 @@ async function escalateAppointment(expertId, appointmentId, reason, transcriptSn
   return { success: true, contact };
 }
 
+async function getAppointmentById(userId, appointmentId) {
+  return prisma.appointment.findFirst({
+    where: {
+      id: appointmentId,
+      OR: [{ student_id: userId }, { expert_id: userId }]
+    },
+    include: {
+      expert: { select: { id: true, username: true, specialty: true, avatar_url: true } },
+      student: { select: { id: true, username: true } }
+    }
+  });
+}
+
+async function updateAppointmentRoom(userId, appointmentId, roomId) {
+  const appointment = await prisma.appointment.findFirst({
+    where: {
+      id: appointmentId,
+      OR: [{ student_id: userId }, { expert_id: userId }]
+    }
+  });
+  if (!appointment) throw Object.assign(new Error('Appointment not found'), { status: 404 });
+  
+  if (appointment.room_id) {
+    return appointment;
+  }
+
+  return prisma.appointment.update({
+    where: { id: appointmentId },
+    data: { room_id: roomId, updated_at: new Date() }
+  });
+}
+
 module.exports = {
   getExperts, getAvailableSlots, getMySlots, getUserAppointments,
   createAppointment, cancelAppointment, addAvailabilitySlot, deleteAvailabilitySlot,
-  completeAppointment, rescheduleAppointment, escalateAppointment
+  completeAppointment, rescheduleAppointment, escalateAppointment,
+  getAppointmentById, updateAppointmentRoom
 };

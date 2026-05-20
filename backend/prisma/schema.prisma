@@ -220,12 +220,28 @@ model Appointment {
   student Profile             @relation("student_appointments", fields: [student_id], references: [id], onDelete: Cascade)
   expert  Profile             @relation("expert_appointments", fields: [expert_id], references: [id], onDelete: Cascade)
   slot    ExpertAvailability? @relation(fields: [slot_id], references: [id])
+  messages AppointmentMessage[]
 
   @@index([student_id])
   @@index([expert_id])
   @@index([status])
   @@index([slot_time])
   @@map("appointments")
+}
+
+model AppointmentMessage {
+  id             String      @id @default(uuid()) @db.Uuid
+  appointment_id String      @db.Uuid
+  sender_id      String      @db.Uuid
+  sender_type    String      // 'student' or 'expert'
+  content        String
+  created_at     DateTime    @default(now()) @db.Timestamptz(6)
+
+  appointment    Appointment @relation(fields: [appointment_id], references: [id], onDelete: Cascade)
+
+  @@index([appointment_id])
+  @@index([created_at])
+  @@map("appointment_messages")
 }
 
 model PeerSession {
