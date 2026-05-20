@@ -3,7 +3,7 @@ import { MeetingProvider } from "@videosdk.live/react-sdk";
 import { Video, Phone, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createVideoSDKRoom, getVideoSDKToken } from "@/lib/videosdk";
-import { supabase } from "@/integrations/supabase/client";
+import api from "@/lib/api";
 import MeetingView from "./MeetingView";
 import { toast } from "@/hooks/use-toast";
 
@@ -57,11 +57,9 @@ const VideoCallModal = ({
     setIsLoading(true);
     try {
       if (appointmentId) {
-        const { data: apt } = await supabase
-          .from("appointments")
-          .select("room_id")
-          .eq("id", appointmentId)
-          .single();
+        // Fetch appointment details from backend API
+        const { data } = await api.get(`/appointments/${appointmentId}`);
+        const apt = data?.appointment;
 
         if (apt?.room_id) {
           const t = await getVideoSDKToken();
@@ -71,30 +69,15 @@ const VideoCallModal = ({
         }
 
         const { token: t, roomId } = await createVideoSDKRoom();
-        // Idempotent: only set room_id if still null
-        const { data: updated } = await supabase
-          .from("appointments")
-          .update({ room_id: roomId } as any)
-          .eq("id", appointmentId)
-          .is("room_id", null)
-          .select("room_id")
-          .maybeSingle();
+        
+        // Idempotently update the room_id in Express API
+        const { data: updateData } = await api.patch(`/appointments/${appointmentId}/room`, {
+          room_id: roomId
+        });
+        const updated = updateData?.appointment;
 
         // If another call already set room_id, use theirs
         const finalRoomId = updated?.room_id || roomId;
-        if (!updated) {
-          // Re-read canonical room_id
-          const { data: reread } = await supabase
-            .from("appointments")
-            .select("room_id")
-            .eq("id", appointmentId)
-            .single();
-          if (reread?.room_id) {
-            setToken(t);
-            setMeetingId(reread.room_id);
-            return;
-          }
-        }
 
         setToken(t);
         setMeetingId(finalRoomId);
@@ -113,7 +96,7 @@ const VideoCallModal = ({
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to start call",
+        description: error.response?.data?.error || error.message || "Failed to start call",
         variant: "destructive",
       });
     } finally {

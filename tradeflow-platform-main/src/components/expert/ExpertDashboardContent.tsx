@@ -14,6 +14,7 @@ import { Calendar as CalendarPicker } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import VideoCallModal from "@/components/videosdk/VideoCallModal";
+import ExpertChatModal from "@/components/expert/ExpertChatModal";
 import ExpertL3AlertPanel from "@/components/expert/ExpertL3AlertPanel";
 import { useAuth } from "@/contexts/AuthContext";
 import api from "@/lib/api";
@@ -40,6 +41,7 @@ const ExpertDashboardContent = () => {
   // Call modal
   const captureSnippetRef = useRef<(() => Promise<string>) | null>(null);
   const [callModal, setCallModal] = useState<{ open: boolean; mode: "video" | "audio"; appointmentId?: string }>({ open: false, mode: "video" });
+  const [chatModal, setChatModal] = useState<{ open: boolean; appointmentId: string | null; studentName?: string }>({ open: false, appointmentId: null });
 
   // Session completion
   const [sessionNotes, setSessionNotes] = useState("");
@@ -83,6 +85,7 @@ const ExpertDashboardContent = () => {
       return data.appointments;
     },
     enabled: !!user,
+    refetchInterval: 3000,
   });
 
   const { data: mySlots = [] } = useQuery({
@@ -217,6 +220,8 @@ const ExpertDashboardContent = () => {
   const upcoming = myAppointments.filter((a) => a.status === "pending" || a.status === "confirmed");
   const completed = myAppointments.filter((a) => a.status === "completed");
   const futureSlots = mySlots.filter((s) => new Date(s.start_time) > new Date());
+  const activeIncomingCall = upcoming.find((a) => a.room_id);
+  const activeIncomingChat = upcoming.find((a: any) => a.session_type === "chat" && (a.status === "pending" || a.status === "confirmed"));
 
   // Calendar helpers
   const getCalendarDays = () => {
@@ -281,6 +286,94 @@ const ExpertDashboardContent = () => {
           <div className="space-y-4">
             {/* L3 Emergency Alerts */}
             <ExpertL3AlertPanel />
+
+            {/* Active Calling Session Glowing Banner */}
+            {activeIncomingCall && (
+              <div className="relative overflow-hidden rounded-2xl border border-primary/40 bg-gradient-to-r from-emerald-950/40 via-teal-950/40 to-cyan-950/40 p-5 shadow-[0_0_25px_rgba(16,185,129,0.2)]">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(16,185,129,0.08),transparent_70%)]" />
+                <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <div className="absolute -inset-1 rounded-full bg-emerald-500/30 blur animate-ping" />
+                      <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg">
+                        <Video className="h-6 w-6 animate-bounce" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-base text-emerald-400 font-display flex items-center gap-2">
+                        Active Calling Session
+                        <span className="inline-flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                      </h3>
+                      <p className="text-sm text-emerald-200/80 mt-0.5">
+                        <span className="font-semibold text-white">{activeIncomingCall.student?.username || "A student"}</span> has initiated an instant call.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      size="sm"
+                      className="bg-emerald-500 hover:bg-emerald-400 text-black font-semibold h-9 px-5 rounded-xl shadow-[0_4px_12px_rgba(16,185,129,0.3)] transition-all hover:scale-105"
+                      onClick={() => {
+                        setCallModal({
+                          open: true,
+                          mode: activeIncomingCall.session_type === "video" ? "video" : "audio",
+                          appointmentId: activeIncomingCall.id
+                        });
+                        setSessionTimer({
+                          appointmentId: activeIncomingCall.id,
+                          startTime: Date.now()
+                        });
+                      }}
+                    >
+                      <Video className="w-4 h-4 mr-2" />
+                      Join Call Now
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Active Chat Session Glowing Banner */}
+            {activeIncomingChat && (
+              <div className="relative overflow-hidden rounded-2xl border border-green-400/30 bg-gradient-to-r from-green-950/50 via-emerald-950/40 to-teal-950/50 p-5 shadow-[0_0_30px_rgba(34,197,94,0.15)]">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(34,197,94,0.06),transparent_70%)]" />
+                <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <div className="absolute -inset-1 rounded-full bg-green-500/25 blur animate-ping" />
+                      <div className="relative flex h-12 w-12 items-center justify-center rounded-full bg-green-500 text-white shadow-lg">
+                        <MessageCircle className="h-6 w-6 animate-bounce" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-base text-green-400 font-display flex items-center gap-2">
+                        Active Chat Request
+                        <span className="inline-flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                      </h3>
+                      <p className="text-sm text-green-200/80 mt-0.5">
+                        <span className="font-semibold text-white">{activeIncomingChat.student?.username || "A student"}</span> wants to chat with you.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Button
+                      size="sm"
+                      className="bg-green-500 hover:bg-green-400 text-black font-semibold h-9 px-5 rounded-xl shadow-[0_4px_12px_rgba(34,197,94,0.3)] transition-all hover:scale-105"
+                      onClick={() => {
+                        setChatModal({
+                          open: true,
+                          appointmentId: activeIncomingChat.id,
+                          studentName: activeIncomingChat.student?.username || "Student",
+                        });
+                      }}
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      Join Chat Now
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold font-display">Appointments</h2>
               <Button size="sm" className="gap-1.5" onClick={() => { setActiveTab("schedule"); }}>
@@ -306,9 +399,11 @@ const ExpertDashboardContent = () => {
                       )}>
                         {apt.status === "completed"
                           ? <CheckCircle className="w-5 h-5 text-eternia-success" />
-                          : apt.session_type === "video"
-                            ? <Video className="w-5 h-5 text-white" />
-                            : <Phone className="w-5 h-5 text-white" />
+                          : apt.session_type === "chat"
+                            ? <MessageCircle className="w-5 h-5 text-white" />
+                            : apt.session_type === "video"
+                              ? <Video className="w-5 h-5 text-white" />
+                              : <Phone className="w-5 h-5 text-white" />
                         }
                       </div>
                         <div className="flex-1 min-w-0">
@@ -330,12 +425,20 @@ const ExpertDashboardContent = () => {
 
                         {apt.status !== "completed" && apt.status !== "cancelled" && (
                           <div className="flex items-center gap-2 mt-3 flex-wrap">
-                            <Button size="sm" className="gap-1 h-7 text-[11px] px-3" onClick={() => {
-                              setCallModal({ open: true, mode: apt.session_type === "video" ? "video" : "audio", appointmentId: apt.id });
-                              setSessionTimer({ appointmentId: apt.id, startTime: Date.now() });
-                            }}>
-                              {apt.session_type === "video" ? <Video className="w-3 h-3" /> : <Phone className="w-3 h-3" />}Join Session
-                            </Button>
+                            {apt.session_type === "chat" ? (
+                              <Button size="sm" className="gap-1 h-7 text-[11px] px-3 bg-green-600 hover:bg-green-500" onClick={() => {
+                                setChatModal({ open: true, appointmentId: apt.id, studentName: apt.student?.username || "Student" });
+                              }}>
+                                <MessageCircle className="w-3 h-3" />Join Chat
+                              </Button>
+                            ) : (
+                              <Button size="sm" className="gap-1 h-7 text-[11px] px-3" onClick={() => {
+                                setCallModal({ open: true, mode: apt.session_type === "video" ? "video" : "audio", appointmentId: apt.id });
+                                setSessionTimer({ appointmentId: apt.id, startTime: Date.now() });
+                              }}>
+                                {apt.session_type === "video" ? <Video className="w-3 h-3" /> : <Phone className="w-3 h-3" />}Join Session
+                              </Button>
+                            )}
                             <Button size="sm" variant="outline" className="gap-1 h-7 text-[11px] px-3" onClick={() => setRescheduleDialog({ open: true, appointmentId: apt.id, currentTime: apt.slot_time, studentId: apt.student_id, studentName: apt.student?.username })}>
                               <RefreshCw className="w-3 h-3" />Reschedule
                             </Button>
@@ -507,12 +610,20 @@ const ExpertDashboardContent = () => {
                       <div className="flex items-center gap-2 shrink-0">
                         {(apt.status === "pending" || apt.status === "confirmed") && (
                           <>
-                            <Button size="sm" className="gap-1 h-7 text-[11px] px-2.5" onClick={() => {
-                              setCallModal({ open: true, mode: apt.session_type === "video" ? "video" : "audio", appointmentId: apt.id });
-                              setSessionTimer({ appointmentId: apt.id, startTime: Date.now() });
-                            }}>
-                              {apt.session_type === "video" ? <Video className="w-3 h-3" /> : <Phone className="w-3 h-3" />}Join
-                            </Button>
+                            {apt.session_type === "chat" ? (
+                              <Button size="sm" className="gap-1 h-7 text-[11px] px-2.5 bg-green-600 hover:bg-green-500" onClick={() => {
+                                setChatModal({ open: true, appointmentId: apt.id, studentName: apt.student?.username || "Student" });
+                              }}>
+                                <MessageCircle className="w-3 h-3" />Chat
+                              </Button>
+                            ) : (
+                              <Button size="sm" className="gap-1 h-7 text-[11px] px-2.5" onClick={() => {
+                                setCallModal({ open: true, mode: apt.session_type === "video" ? "video" : "audio", appointmentId: apt.id });
+                                setSessionTimer({ appointmentId: apt.id, startTime: Date.now() });
+                              }}>
+                                {apt.session_type === "video" ? <Video className="w-3 h-3" /> : <Phone className="w-3 h-3" />}Join
+                              </Button>
+                            )}
                             <Button size="sm" variant="outline" className="h-7 text-[11px] px-2.5" onClick={() => updateAppointmentStatus.mutate({ id: apt.id, status: "cancelled" })}>Cancel</Button>
                             <Button size="sm" variant="outline" className="h-7 text-[11px] px-2.5" onClick={() => setRescheduleDialog({ open: true, appointmentId: apt.id, currentTime: apt.slot_time, studentId: apt.student_id, studentName: (apt as any).student?.username })}>
                               <RefreshCw className="w-3 h-3" />
@@ -811,6 +922,7 @@ const ExpertDashboardContent = () => {
       </Dialog>
 
       <VideoCallModal isOpen={callModal.open} onClose={() => setCallModal({ open: false, mode: "video" })} participantName={profile?.username || "Expert"} mode={callModal.mode} appointmentId={callModal.appointmentId} enableMonitoring={true} onCaptureSnippetReady={(fn) => { captureSnippetRef.current = fn; }} onEscalate={() => { if (callModal.appointmentId) { setEscalationDialog({ open: true, appointmentId: callModal.appointmentId }); } }} />
+      <ExpertChatModal isOpen={chatModal.open} onClose={() => setChatModal({ open: false, appointmentId: null })} appointmentId={chatModal.appointmentId} studentName={chatModal.studentName} />
     </DashboardLayout>
   );
 };
