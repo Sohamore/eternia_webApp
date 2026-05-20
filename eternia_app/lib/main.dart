@@ -15,6 +15,7 @@ import 'services/sound_service.dart';
 import 'services/selfhelp_service.dart';
 import 'services/notifications_service.dart';
 import 'services/profiles_service.dart';
+import 'services/videosdk_service.dart';
 
 import 'providers/theme_provider.dart';
 import 'providers/auth_provider.dart';
@@ -27,6 +28,7 @@ import 'providers/sound_provider.dart';
 import 'providers/selfhelp_provider.dart';
 import 'providers/notifications_provider.dart';
 import 'providers/profiles_provider.dart';
+import 'providers/videosdk_provider.dart';
 
 import 'screens/onboarding_screen.dart/onboarding_screen.dart';
 import 'screens/onboarding_screen.dart/VerifyCampusScreen.dart';
@@ -47,6 +49,7 @@ void main() {
   final selfHelpService = SelfHelpService(apiClient);
   final notificationsService = NotificationsService(apiClient);
   final profilesService = ProfilesService(apiClient);
+  final videoSDKService = VideoSDKService(apiClient);
 
   runApp(
     MultiProvider(
@@ -76,6 +79,9 @@ void main() {
         ),
         ChangeNotifierProvider(
           create: (_) => ProfilesProvider(profilesService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => VideoSDKProvider(videoSDKService),
         ),
       ],
       child: const MyApp(),

@@ -11,13 +11,18 @@ class AppointmentsProvider extends ChangeNotifier {
   List<Map<String, dynamic>>? _experts;
   List<Map<String, dynamic>>? _slots;
   List<Map<String, dynamic>>? _appointments;
+  List<Map<String, dynamic>>? _messages;
   DateTime? _lastFetched;
+
+  Map<String, dynamic>? _lastBookedAppointment;
 
   bool get isLoading => _isLoading;
   String? get error => _error;
   List<Map<String, dynamic>>? get experts => _experts;
   List<Map<String, dynamic>>? get slots => _slots;
   List<Map<String, dynamic>>? get appointments => _appointments;
+  List<Map<String, dynamic>>? get messages => _messages;
+  Map<String, dynamic>? get lastBookedAppointment => _lastBookedAppointment;
 
   AppointmentsProvider(this._service);
 
@@ -65,10 +70,28 @@ class AppointmentsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> book({required String expertId, String? slotId, required String slotTime, String? sessionType, int? creditsCharged}) async {
+  Future<bool> book({
+    required String expertId,
+    String? slotId,
+    required String slotTime,
+    String? sessionType,
+    int? creditsCharged,
+    String? roomId,
+  }) async {
     _error = null;
+    _lastBookedAppointment = null;
     try {
-      await _service.book(expertId: expertId, slotId: slotId, slotTime: slotTime, sessionType: sessionType, creditsCharged: creditsCharged);
+      final data = await _service.book(
+        expertId: expertId,
+        slotId: slotId,
+        slotTime: slotTime,
+        sessionType: sessionType,
+        creditsCharged: creditsCharged,
+        roomId: roomId,
+      );
+      if (data['appointment'] != null) {
+        _lastBookedAppointment = Map<String, dynamic>.from(data['appointment'] as Map);
+      }
       await fetchHistory();
       return true;
     } on DioException catch (e) {
@@ -83,6 +106,31 @@ class AppointmentsProvider extends ChangeNotifier {
     try {
       await _service.cancel(id);
       await fetchHistory();
+      return true;
+    } on DioException catch (e) {
+      _error = ApiClient.classifyError(e).message;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<void> fetchMessages(String appointmentId) async {
+    _error = null;
+    try {
+      final data = await _service.getMessages(appointmentId);
+      _messages = List<Map<String, dynamic>>.from(data['messages'] as List? ?? []);
+      notifyListeners();
+    } on DioException catch (e) {
+      _error = ApiClient.classifyError(e).message;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> sendMessage(String appointmentId, String content) async {
+    _error = null;
+    try {
+      await _service.sendMessage(appointmentId, content);
+      await fetchMessages(appointmentId);
       return true;
     } on DioException catch (e) {
       _error = ApiClient.classifyError(e).message;

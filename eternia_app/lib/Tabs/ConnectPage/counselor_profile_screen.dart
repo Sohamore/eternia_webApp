@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:eternia_ef/Tabs/ConnectPage/chat_screen.dart';
 import 'package:eternia_ef/Tabs/ConnectPage/video_call_screen.dart';
 import 'package:eternia_ef/Tabs/ConnectPage/audio_call_screen.dart';
@@ -5,8 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
+import 'package:eternia_ef/providers/videosdk_provider.dart';
+import 'package:eternia_ef/providers/appointments_provider.dart';
+import 'package:eternia_ef/screens/onboarding_screen.dart/calling_screen.dart';
 
 class CounselorProfileScreen extends StatefulWidget {
+  final String? id;
   final String name;
   final String specialty;
   final String experience;
@@ -14,6 +19,7 @@ class CounselorProfileScreen extends StatefulWidget {
 
   const CounselorProfileScreen({
     super.key,
+    this.id,
     required this.name,
     required this.specialty,
     required this.experience,
@@ -466,16 +472,690 @@ class _CounselorProfileScreenState extends State<CounselorProfileScreen> {
     );
   }
 
+  Future<void> _startVideoCall() async {
+    final provider = Provider.of<ThemeProvider>(context, listen: false);
+    final bool isDark = provider.isDark;
+    final Color primary = isDark ? const Color(0xFF67F5D4) : const Color(0xFF53B29A);
+
+    // Show a beautiful premium connection loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.7),
+      builder: (BuildContext dialogContext) {
+        return PopScope(
+          canPop: false,
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Container(
+              padding: const EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF040B0D) : Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: primary.withOpacity(0.2)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.5),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(primary),
+                        strokeWidth: 2.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    "Initiating Video Link",
+                    style: GoogleFonts.cormorantGaramond(
+                      color: isDark ? Colors.white : const Color(0xFF1B2722),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Connecting with ${widget.name}...",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      color: isDark ? Colors.white38 : Colors.black38,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    debugPrint('[CounselorProfileScreen] StartVideoCall initiated for expert ${widget.name} with ID: ${widget.id}');
+    
+    bool dialogDismissed = false;
+    void dismissLoadingDialog() {
+      if (!dialogDismissed && mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        dialogDismissed = true;
+      }
+    }
+
+    try {
+      if (widget.id == null) {
+        dismissLoadingDialog();
+        _showDiagnosticsDialog(
+          title: "Expert ID Missing",
+          message: "The profile is missing a valid expert ID string. Calling is not supported for hardcoded preview counselors.",
+          details: "widget.id = null\nExpert Name: ${widget.name}",
+        );
+        return;
+      }
+
+      // Fetch token and room ID from VideoSDKProvider
+      final videoSDKProvider = Provider.of<VideoSDKProvider>(context, listen: false);
+      debugPrint('[CounselorProfileScreen] Calling startNewRoom...');
+      final String? roomId = await videoSDKProvider.startNewRoom().timeout(
+        const Duration(seconds: 25),
+        onTimeout: () => throw TimeoutException("VideoSDK room creation timed out. Please check your internet connectivity or if the backend server is reachable."),
+      );
+
+      debugPrint('[CounselorProfileScreen] Room ID fetched: $roomId, Token fetched: ${videoSDKProvider.token != null ? "YES" : "NO"}');
+
+      if (roomId != null && videoSDKProvider.token != null) {
+        final appointmentsProvider = Provider.of<AppointmentsProvider>(context, listen: false);
+        debugPrint('[CounselorProfileScreen] Attempting to book appointment with expertId: ${widget.id}, roomId: $roomId');
+        
+        bool isBooked = await appointmentsProvider.book(
+          expertId: widget.id!,
+          slotTime: DateTime.now().toUtc().toIso8601String(),
+          sessionType: 'video',
+          roomId: roomId,
+        ).timeout(
+          const Duration(seconds: 20),
+          onTimeout: () => throw TimeoutException("Booking transaction timed out. The slotless appointment creation request did not get a response from the backend."),
+        );
+        
+        debugPrint('[CounselorProfileScreen] Book appointment result: $isBooked, error: ${appointmentsProvider.error}');
+
+        dismissLoadingDialog();
+
+        if (mounted) {
+          if (isBooked) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CallingScreen(
+                  roomId: roomId,
+                  token: videoSDKProvider.token!,
+                ),
+              ),
+            );
+          } else {
+            final errorMsg = appointmentsProvider.error ?? "Failed to book video session. The backend rejected the appointment booking request.";
+            _showDiagnosticsDialog(
+              title: "Booking Rejected",
+              message: errorMsg,
+              details: "Expert ID: ${widget.id}\nRoom ID: $roomId\nError from Provider: ${appointmentsProvider.error}",
+            );
+          }
+        }
+      } else {
+        dismissLoadingDialog();
+        final errorMsg = videoSDKProvider.error ?? "Could not create VideoSDK room. The server might have returned an invalid response.";
+        _showDiagnosticsDialog(
+          title: "Room Creation Failed",
+          message: errorMsg,
+          details: "VideoSDKProvider.error = ${videoSDKProvider.error}\nVideoSDKProvider.token = ${videoSDKProvider.token}",
+        );
+      }
+    } catch (e, stack) {
+      debugPrint('[CounselorProfileScreen] CRITICAL ERROR IN VIDEO CALL INITIATION:');
+      debugPrint(e.toString());
+      debugPrint(stack.toString());
+
+      dismissLoadingDialog();
+      _showDiagnosticsDialog(
+        title: "Initiation Failure",
+        message: "An unexpected error occurred during the call setup process.",
+        details: "Exception: $e\n\nStack Trace:\n$stack",
+      );
+    }
+  }
+
+  Future<void> _startAudioCall() async {
+    final provider = Provider.of<ThemeProvider>(context, listen: false);
+    final bool isDark = provider.isDark;
+    final Color primary = isDark ? const Color(0xFF67F5D4) : const Color(0xFF53B29A);
+
+    // Show a beautiful premium connection loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.7),
+      builder: (BuildContext dialogContext) {
+        return PopScope(
+          canPop: false,
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Container(
+              padding: const EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF040B0D) : Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: primary.withOpacity(0.2)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.5),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(primary),
+                        strokeWidth: 2.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    "Initiating Audio Link",
+                    style: GoogleFonts.cormorantGaramond(
+                      color: isDark ? Colors.white : const Color(0xFF1B2722),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Connecting with ${widget.name}...",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      color: isDark ? Colors.white38 : Colors.black38,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    debugPrint('[CounselorProfileScreen] StartAudioCall initiated for expert ${widget.name} with ID: ${widget.id}');
+    
+    bool dialogDismissed = false;
+    void dismissLoadingDialog() {
+      if (!dialogDismissed && mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        dialogDismissed = true;
+      }
+    }
+
+    try {
+      if (widget.id == null) {
+        dismissLoadingDialog();
+        _showDiagnosticsDialog(
+          title: "Expert ID Missing",
+          message: "The profile is missing a valid expert ID string. Calling is not supported for hardcoded preview counselors.",
+          details: "widget.id = null\nExpert Name: ${widget.name}",
+        );
+        return;
+      }
+
+      // Fetch token and room ID from VideoSDKProvider
+      final videoSDKProvider = Provider.of<VideoSDKProvider>(context, listen: false);
+      debugPrint('[CounselorProfileScreen] Calling startNewRoom...');
+      final String? roomId = await videoSDKProvider.startNewRoom().timeout(
+        const Duration(seconds: 25),
+        onTimeout: () => throw TimeoutException("VideoSDK room creation timed out. Please check your internet connectivity or if the backend server is reachable."),
+      );
+
+      debugPrint('[CounselorProfileScreen] Room ID fetched: $roomId, Token fetched: ${videoSDKProvider.token != null ? "YES" : "NO"}');
+
+      if (roomId != null && videoSDKProvider.token != null) {
+        final appointmentsProvider = Provider.of<AppointmentsProvider>(context, listen: false);
+        debugPrint('[CounselorProfileScreen] Attempting to book appointment with expertId: ${widget.id}, roomId: $roomId');
+        
+        bool isBooked = await appointmentsProvider.book(
+          expertId: widget.id!,
+          slotTime: DateTime.now().toUtc().toIso8601String(),
+          sessionType: 'audio',
+          roomId: roomId,
+        ).timeout(
+          const Duration(seconds: 20),
+          onTimeout: () => throw TimeoutException("Booking transaction timed out. The slotless appointment creation request did not get a response from the backend."),
+        );
+        
+        debugPrint('[CounselorProfileScreen] Book appointment result: $isBooked, error: ${appointmentsProvider.error}');
+
+        dismissLoadingDialog();
+
+        if (mounted) {
+          if (isBooked) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CallingScreen(
+                  roomId: roomId,
+                  token: videoSDKProvider.token!,
+                  isAudioOnly: true,
+                ),
+              ),
+            );
+          } else {
+            final errorMsg = appointmentsProvider.error ?? "Failed to book audio session. The backend rejected the appointment booking request.";
+            _showDiagnosticsDialog(
+              title: "Booking Rejected",
+              message: errorMsg,
+              details: "Expert ID: ${widget.id}\nRoom ID: $roomId\nError from Provider: ${appointmentsProvider.error}",
+            );
+          }
+        }
+      } else {
+        dismissLoadingDialog();
+        final errorMsg = videoSDKProvider.error ?? "Could not create VideoSDK room. The server might have returned an invalid response.";
+        _showDiagnosticsDialog(
+          title: "Room Creation Failed",
+          message: errorMsg,
+          details: "VideoSDKProvider.error = ${videoSDKProvider.error}\nVideoSDKProvider.token = ${videoSDKProvider.token}",
+        );
+      }
+    } catch (e, stack) {
+      debugPrint('[CounselorProfileScreen] CRITICAL ERROR IN AUDIO CALL INITIATION:');
+      debugPrint(e.toString());
+      debugPrint(stack.toString());
+
+      dismissLoadingDialog();
+      _showDiagnosticsDialog(
+        title: "Initiation Failure",
+        message: "An unexpected error occurred during the call setup process.",
+        details: "Exception: $e\n\nStack Trace:\n$stack",
+      );
+    }
+  }
+
+  Future<void> _startChatSession() async {
+    final provider = Provider.of<ThemeProvider>(context, listen: false);
+    final bool isDark = provider.isDark;
+    final Color primary = isDark ? const Color(0xFF67F5D4) : const Color(0xFF53B29A);
+
+    // Show a beautiful premium connection loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.7),
+      builder: (BuildContext dialogContext) {
+        return PopScope(
+          canPop: false,
+          child: Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Container(
+              padding: const EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF040B0D) : Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: primary.withOpacity(0.2)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.5),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: primary.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: SizedBox(
+                      width: 44,
+                      height: 44,
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(primary),
+                        strokeWidth: 2.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    "Initiating Secure Chat",
+                    style: GoogleFonts.cormorantGaramond(
+                      color: isDark ? Colors.white : const Color(0xFF1B2722),
+                      fontSize: 22,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Creating live chat channel with ${widget.name}...",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      color: isDark ? Colors.white38 : Colors.black38,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    debugPrint('[CounselorProfileScreen] StartChatSession initiated for expert ${widget.name} with ID: ${widget.id}');
+    
+    bool dialogDismissed = false;
+    void dismissLoadingDialog() {
+      if (!dialogDismissed && mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        dialogDismissed = true;
+      }
+    }
+
+    try {
+      if (widget.id == null) {
+        dismissLoadingDialog();
+        _showDiagnosticsDialog(
+          title: "Expert ID Missing",
+          message: "The profile is missing a valid expert ID string. Chatting is not supported for hardcoded preview counselors.",
+          details: "widget.id = null\nExpert Name: ${widget.name}",
+        );
+        return;
+      }
+
+      final appointmentsProvider = Provider.of<AppointmentsProvider>(context, listen: false);
+      debugPrint('[CounselorProfileScreen] Attempting to book chat appointment with expertId: ${widget.id}');
+      
+      bool isBooked = await appointmentsProvider.book(
+        expertId: widget.id!,
+        slotTime: DateTime.now().toUtc().toIso8601String(),
+        sessionType: 'chat',
+      ).timeout(
+        const Duration(seconds: 20),
+        onTimeout: () => throw TimeoutException("Booking transaction timed out. The slotless chat session creation request did not get a response from the backend."),
+      );
+      
+      debugPrint('[CounselorProfileScreen] Book chat result: $isBooked, error: ${appointmentsProvider.error}');
+
+      dismissLoadingDialog();
+
+      if (mounted) {
+        if (isBooked && appointmentsProvider.lastBookedAppointment != null) {
+          final String sessionId = appointmentsProvider.lastBookedAppointment!['id'].toString();
+          debugPrint('[CounselorProfileScreen] Navigating to ChatScreen with sessionId: $sessionId');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatScreen(
+                counselorName: widget.name,
+                sessionId: sessionId,
+                isExpertChat: true,
+              ),
+            ),
+          );
+        } else {
+          final errorMsg = appointmentsProvider.error ?? "Failed to book chat session. The backend rejected the appointment booking request.";
+          _showDiagnosticsDialog(
+            title: "Booking Rejected",
+            message: errorMsg,
+            details: "Expert ID: ${widget.id}\nError from Provider: ${appointmentsProvider.error}",
+          );
+        }
+      }
+    } catch (e, stack) {
+      debugPrint('[CounselorProfileScreen] CRITICAL ERROR IN CHAT INITIATION:');
+      debugPrint(e.toString());
+      debugPrint(stack.toString());
+
+      dismissLoadingDialog();
+      _showDiagnosticsDialog(
+        title: "Initiation Failure",
+        message: "An unexpected error occurred during the chat channel setup process.",
+        details: "Exception: $e\n\nStack Trace:\n$stack",
+      );
+    }
+  }
+
+  // Premium Diagnostics Alert Dialog for clear user and developer feedback
+  void _showDiagnosticsDialog({
+    required String title,
+    required String message,
+    required String details,
+  }) {
+    if (!mounted) return;
+
+    final provider = Provider.of<ThemeProvider>(context, listen: false);
+    final bool isDark = provider.isDark;
+    final Color primary = isDark ? const Color(0xFF67F5D4) : const Color(0xFF53B29A);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        bool showDetails = false;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF071011) : Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.redAccent.withOpacity(0.3), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.redAccent.withOpacity(0.08),
+                      blurRadius: 40,
+                      spreadRadius: -10,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent.withOpacity(0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 28),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: GoogleFonts.cormorantGaramond(
+                              color: isDark ? Colors.white : const Color(0xFF1B2722),
+                              fontSize: 24,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      message,
+                      style: GoogleFonts.poppins(
+                        color: isDark ? Colors.white70 : Colors.black87,
+                        fontSize: 13,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    
+                    // Technical Details Accordion
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          showDetails = !showDetails;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.white.withOpacity(0.03) : Colors.black.withOpacity(0.03),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: isDark ? Colors.white.withOpacity(0.07) : Colors.black.withOpacity(0.07),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              showDetails ? "Hide Technical Details" : "View Technical Details",
+                              style: GoogleFonts.poppins(
+                                color: isDark ? Colors.white38 : Colors.black38,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Icon(
+                              showDetails ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                              color: isDark ? Colors.white38 : Colors.black38,
+                              size: 16,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    
+                    if (showDetails) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        constraints: const BoxConstraints(maxHeight: 180),
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.black.withOpacity(0.5) : Colors.grey.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.05),
+                          ),
+                        ),
+                        child: SingleChildScrollView(
+                          child: SelectableText(
+                            details,
+                            style: GoogleFonts.firaCode(
+                              color: isDark ? Colors.redAccent.withOpacity(0.9) : Colors.red.shade900,
+                              fontSize: 10,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                    
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: Text(
+                            "CLOSE",
+                            style: GoogleFonts.poppins(
+                              color: isDark ? Colors.white70 : Colors.black54,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _startVideoCall();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primary,
+                            foregroundColor: isDark ? const Color(0xFF0D1418) : Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            "RETRY",
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildContactOption(IconData icon, String text, {required bool isDark, required Color primary, required Color borderColor, required Color cardColor, required Color textSecondary}) {
     return Expanded(
       child: GestureDetector(
         onTap: () {
           if (text == "Chat") {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(counselorName: widget.name)));
+            _startChatSession();
           } else if (text == "Video") {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => VideoCallScreen(counselorName: widget.name, avatarUrl: widget.avatarUrl)));
+            _startVideoCall();
           } else if (text == "Audio") {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => AudioCallScreen(counselorName: widget.name, avatarUrl: widget.avatarUrl)));
+            _startAudioCall();
           }
         },
         child: Container(

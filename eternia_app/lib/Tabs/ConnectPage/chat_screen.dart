@@ -1,18 +1,22 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
 import 'package:eternia_ef/providers/peers_provider.dart';
+import 'package:eternia_ef/providers/appointments_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final String counselorName;
   final String? sessionId;
+  final bool isExpertChat;
 
   const ChatScreen({
     super.key,
     this.counselorName = "Counselor",
     this.sessionId,
+    this.isExpertChat = false,
   });
 
   @override
@@ -23,6 +27,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final List<Map<String, dynamic>> _messages = [];
   String selectedEmoji = "😊";
+  Timer? _pollTimer;
+
   @override
   void initState() {
     super.initState();
@@ -30,9 +36,23 @@ class _ChatScreenState extends State<ChatScreen> {
     // Fetch real messages if sessionId is provided
     if (widget.sessionId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        final provider = Provider.of<PeersProvider>(context, listen: false);
-        await provider.fetchMessages(widget.sessionId!);
-        _syncMessages(provider.messages);
+        if (widget.isExpertChat) {
+          final appointmentsProvider = Provider.of<AppointmentsProvider>(context, listen: false);
+          await appointmentsProvider.fetchMessages(widget.sessionId!);
+          _syncMessages(appointmentsProvider.messages);
+
+          // Start polling every 2 seconds
+          _pollTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+            if (mounted) {
+              await appointmentsProvider.fetchMessages(widget.sessionId!);
+              _syncMessages(appointmentsProvider.messages);
+            }
+          });
+        } else {
+          final provider = Provider.of<PeersProvider>(context, listen: false);
+          await provider.fetchMessages(widget.sessionId!);
+          _syncMessages(provider.messages);
+        }
       });
     } else {
       // Fallback: add greeting if no session ID
@@ -45,13 +65,21 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    _controller.dispose();
+    super.dispose();
+  }
+
   void _syncMessages(List<Map<String, dynamic>>? backendMessages) {
     if (backendMessages == null || !mounted) return;
     setState(() {
       _messages.clear();
       for (final msg in backendMessages) {
-        final isSent =
-            msg['sender_type'] == 'user' || msg['is_from_user'] == true;
+        final isSent = widget.isExpertChat
+            ? (msg['sender_type'] == 'student')
+            : (msg['sender_type'] == 'user' || msg['is_from_user'] == true);
         final createdAt = msg['created_at'] as String?;
         String timeStr = '';
         if (createdAt != null) {
@@ -105,12 +133,21 @@ class _ChatScreenState extends State<ChatScreen> {
 
     // Send via provider if sessionId available
     if (widget.sessionId != null) {
-      final provider = Provider.of<PeersProvider>(context, listen: false);
-      final success = await provider.sendMessage(widget.sessionId!, userText);
-      if (success && mounted) {
-        // Re-sync to get any new messages from the other party
-        await provider.fetchMessages(widget.sessionId!);
-        _syncMessages(provider.messages);
+      if (widget.isExpertChat) {
+        final appointmentsProvider = Provider.of<AppointmentsProvider>(context, listen: false);
+        final success = await appointmentsProvider.sendMessage(widget.sessionId!, userText);
+        if (success && mounted) {
+          await appointmentsProvider.fetchMessages(widget.sessionId!);
+          _syncMessages(appointmentsProvider.messages);
+        }
+      } else {
+        final provider = Provider.of<PeersProvider>(context, listen: false);
+        final success = await provider.sendMessage(widget.sessionId!, userText);
+        if (success && mounted) {
+          // Re-sync to get any new messages from the other party
+          await provider.fetchMessages(widget.sessionId!);
+          _syncMessages(provider.messages);
+        }
       }
     }
   }

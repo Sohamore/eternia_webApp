@@ -436,9 +436,12 @@ class _ExpertGuidanceScreenState extends State<ExpertGuidanceScreen> {
             e['avatar'] as String? ??
             "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&q=80";
 
+        final expertId = e['id'] as String?;
+        debugPrint('[ExpertGuidanceScreen] Found expert: $name, ID: $expertId, specialty: $specialty');
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: _buildExpertCard(
+            id: expertId,
             name: name,
             specialty: specialty,
             experience: experience,
@@ -560,6 +563,7 @@ class _ExpertGuidanceScreenState extends State<ExpertGuidanceScreen> {
   }
 
   Widget _buildExpertCard({
+    String? id,
     required String name,
     required String specialty,
     required String experience,
@@ -788,6 +792,7 @@ class _ExpertGuidanceScreenState extends State<ExpertGuidanceScreen> {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => CounselorProfileScreen(
+                                  id: id,
                                   name: name,
                                   specialty: specialty,
                                   experience: experience,

@@ -39,6 +39,7 @@ class AppointmentsService {
     required String slotTime,
     String? sessionType,
     int? creditsCharged,
+    String? roomId,
   }) async {
     final response = await _api.post('/appointments/', data: {
       'expert_id': expertId,
@@ -46,6 +47,7 @@ class AppointmentsService {
       'slot_time': slotTime,
       if (sessionType != null) 'session_type': sessionType,
       if (creditsCharged != null) 'credits_charged': creditsCharged,
+      if (roomId != null) 'room_id': roomId,
     });
     return Map<String, dynamic>.from(response.data as Map);
   }
@@ -75,6 +77,23 @@ class AppointmentsService {
   /// Returns: list of past and upcoming appointments
   Future<Map<String, dynamic>> getHistory() async {
     final response = await _api.get('/appointments/');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  /// GET /appointments/:id/messages
+  /// Returns: list of messages for this appointment chat
+  Future<Map<String, dynamic>> getMessages(String appointmentId) async {
+    final response = await _api.get('/appointments/$appointmentId/messages');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  /// POST /appointments/:id/messages
+  /// Sends a message in this appointment chat
+  Future<Map<String, dynamic>> sendMessage(String appointmentId, String content) async {
+    final response = await _api.post(
+      '/appointments/$appointmentId/messages',
+      data: {'content': content},
+    );
     return Map<String, dynamic>.from(response.data as Map);
   }
 }
