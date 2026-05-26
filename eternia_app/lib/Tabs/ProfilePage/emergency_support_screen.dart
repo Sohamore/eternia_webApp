@@ -42,8 +42,8 @@ class _EmergencySupportScreenState extends State<EmergencySupportScreen> {
     final Color textColor = isDark ? Colors.white : const Color(0xFF1B2722);
 
     final Color cardColor = isDark
-        ? Colors.white.withOpacity(0.05)
-        : Colors.white.withOpacity(0.92);
+        ? Colors.white.withValues(alpha: 0.05)
+        : Colors.white.withValues(alpha: 0.92);
 
     final Color borderColor = isDark
         ? const Color(0xFF1A2B2B)
@@ -112,7 +112,7 @@ class _EmergencySupportScreenState extends State<EmergencySupportScreen> {
                           "If you're in crisis, help is available now.",
 
                           style: GoogleFonts.poppins(
-                            color: textColor.withOpacity(0.6),
+                            color: textColor.withValues(alpha: 0.6),
 
                             fontSize: 13,
                           ),
@@ -140,7 +140,7 @@ class _EmergencySupportScreenState extends State<EmergencySupportScreen> {
 
                   borderRadius: BorderRadius.circular(32),
 
-                  border: Border.all(color: dangerColor.withOpacity(0.3)),
+                  border: Border.all(color: dangerColor.withValues(alpha: 0.3)),
                 ),
 
                 child: Column(
@@ -149,7 +149,7 @@ class _EmergencySupportScreenState extends State<EmergencySupportScreen> {
                       padding: const EdgeInsets.all(18),
 
                       decoration: BoxDecoration(
-                        color: dangerColor.withOpacity(0.15),
+                        color: dangerColor.withValues(alpha: 0.15),
 
                         shape: BoxShape.circle,
                       ),
@@ -183,7 +183,7 @@ class _EmergencySupportScreenState extends State<EmergencySupportScreen> {
                       textAlign: TextAlign.center,
 
                       style: GoogleFonts.poppins(
-                        color: textColor.withOpacity(0.6),
+                        color: textColor.withValues(alpha: 0.6),
 
                         fontSize: 13,
                       ),
@@ -335,7 +335,7 @@ class _EmergencySupportScreenState extends State<EmergencySupportScreen> {
                   //     "Create a personalized safety plan with coping strategies, trusted contacts, and professional resources.",
 
                   //     style: GoogleFonts.poppins(
-                  //       color: textColor.withOpacity(0.6),
+                  //       color: textColor.withValues(alpha:0.6),
 
                   //       fontSize: 12,
 
@@ -354,10 +354,10 @@ class _EmergencySupportScreenState extends State<EmergencySupportScreen> {
                   //       borderRadius: BorderRadius.circular(16),
 
                   //       border: Border.all(
-                  //         color: primaryColor.withOpacity(0.5),
+                  //         color: primaryColor.withValues(alpha:0.5),
                   //       ),
 
-                  //       color: primaryColor.withOpacity(0.05),
+                  //       color: primaryColor.withValues(alpha:0.05),
                   //     ),
 
                   //     alignment: Alignment.center,
@@ -417,7 +417,7 @@ class _EmergencySupportScreenState extends State<EmergencySupportScreen> {
               padding: const EdgeInsets.all(10),
 
               decoration: BoxDecoration(
-                color: primaryColor.withOpacity(0.12),
+                color: primaryColor.withValues(alpha: 0.12),
 
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -450,7 +450,7 @@ class _EmergencySupportScreenState extends State<EmergencySupportScreen> {
                     subtitle,
 
                     style: GoogleFonts.poppins(
-                      color: textColor.withOpacity(0.6),
+                      color: textColor.withValues(alpha: 0.6),
 
                       fontSize: 11,
                     ),
@@ -459,7 +459,7 @@ class _EmergencySupportScreenState extends State<EmergencySupportScreen> {
               ),
             ),
 
-            Icon(Icons.chevron_right, color: textColor.withOpacity(0.4)),
+            Icon(Icons.chevron_right, color: textColor.withValues(alpha: 0.4)),
           ],
         ),
       ),

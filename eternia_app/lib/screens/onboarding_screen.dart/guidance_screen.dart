@@ -25,8 +25,12 @@ class _GuidanceScreenState extends State<GuidanceScreen> {
         : const Color(0xFF53B29A);
     final Color bg = isDark ? const Color(0xFF031313) : const Color(0xFFF6F3ED);
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1B2722);
-    final Color textSecondary = isDark ? Colors.white54 : const Color(0xFF70737C);
-    final Color orbGlow = isDark ? const Color(0xFF7BE7D4) : const Color(0xFF53B29A);
+    final Color textSecondary = isDark
+        ? Colors.white54
+        : const Color(0xFF70737C);
+    final Color orbGlow = isDark
+        ? const Color(0xFF7BE7D4)
+        : const Color(0xFF53B29A);
     final Color ringColor = isDark ? Colors.teal : const Color(0xFF53B29A);
 
     return Scaffold(
@@ -40,31 +44,40 @@ class _GuidanceScreenState extends State<GuidanceScreen> {
               // TOP BAR
               // =============================================
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 22,
+                  vertical: 14,
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                   Text(
-                          "Eternia",
+                    Text(
+                      "Eternia",
 
-                          style: GoogleFonts.playfairDisplay(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w600,
+                      style: GoogleFonts.playfairDisplay(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w600,
 
-                            color: isDark ?  const Color(0xFF67F5D4)
-        : const Color(0xFF53B29A),
-                          ),
-                        ),
+                        color: isDark
+                            ? const Color(0xFF67F5D4)
+                            : const Color(0xFF53B29A),
+                      ),
+                    ),
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const VerifyCampusScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => const VerifyCampusScreen(),
+                          ),
                         );
                       },
                       child: Text(
                         "Skip",
-                        style: GoogleFonts.poppins(color: textSecondary, fontSize: 14),
+                        style: GoogleFonts.poppins(
+                          color: textSecondary,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ],
@@ -86,50 +99,77 @@ class _GuidanceScreenState extends State<GuidanceScreen> {
                         gradient: RadialGradient(
                           radius: 1.2,
                           colors: isDark
-                              ? [const Color(0xFF123A38), const Color(0xFF031313)]
-                              : [primary.withOpacity(0.06), bg],
+                              ? [
+                                  const Color(0xFF123A38),
+                                  const Color(0xFF031313),
+                                ]
+                              : [primary.withValues(alpha: 0.06), bg],
                         ),
                       ),
                     ),
 
                     // OUTER RING
                     Container(
-                      width: 280, height: 280,
+                      width: 280,
+                      height: 280,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: ringColor.withOpacity(isDark ? 0.12 : 0.1)),
+                        border: Border.all(
+                          color: ringColor.withValues(
+                            alpha: isDark ? 0.12 : 0.1,
+                          ),
+                        ),
                       ),
                     ),
 
                     Container(
-                      width: 220, height: 220,
+                      width: 220,
+                      height: 220,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: ringColor.withOpacity(isDark ? 0.14 : 0.12)),
+                        border: Border.all(
+                          color: ringColor.withValues(
+                            alpha: isDark ? 0.14 : 0.12,
+                          ),
+                        ),
                       ),
                     ),
 
                     Container(
-                      width: 162, height: 162,
+                      width: 162,
+                      height: 162,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        border: Border.all(color: ringColor.withOpacity(isDark ? 0.18 : 0.15)),
+                        border: Border.all(
+                          color: ringColor.withValues(
+                            alpha: isDark ? 0.18 : 0.15,
+                          ),
+                        ),
                       ),
                     ),
 
                     // CENTER GLOW ORB
                     Container(
-                      width: 112, height: 112,
+                      width: 112,
+                      height: 112,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
                           colors: isDark
-                              ? [const Color(0xFF90FFE8), const Color(0xFF57B8A8)]
-                              : [const Color(0xFF7DCDB8), const Color(0xFF53B29A)],
+                              ? [
+                                  const Color(0xFF90FFE8),
+                                  const Color(0xFF57B8A8),
+                                ]
+                              : [
+                                  const Color(0xFF7DCDB8),
+                                  const Color(0xFF53B29A),
+                                ],
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: orbGlow.withOpacity(isDark ? 0.5 : 0.3),
+                            color: orbGlow.withValues(
+                              alpha: isDark ? 0.5 : 0.3,
+                            ),
                             blurRadius: 60,
                             spreadRadius: 14,
                           ),
@@ -138,25 +178,45 @@ class _GuidanceScreenState extends State<GuidanceScreen> {
                     ),
 
                     // SMALL ORBS
-                    Positioned(bottom: 140, left: 90, child: _smallOrb(26, isDark)),
-                    Positioned(bottom: 110, right: 105, child: _smallOrb(18, isDark)),
+                    Positioned(
+                      bottom: 140,
+                      left: 90,
+                      child: _smallOrb(26, isDark),
+                    ),
+                    Positioned(
+                      bottom: 110,
+                      right: 105,
+                      child: _smallOrb(18, isDark),
+                    ),
                     Positioned(top: 80, left: 65, child: _smallOrb(10, isDark)),
 
                     // CORNER BUTTONS
                     Positioned(
-                      top: 18, right: 18,
-                      child: _circleButton(Icons.settings_outlined, isDark, primary),
+                      top: 18,
+                      right: 18,
+                      child: _circleButton(
+                        Icons.settings_outlined,
+                        isDark,
+                        primary,
+                      ),
                     ),
                     Positioned(
-                      bottom: 18, left: 18,
+                      bottom: 18,
+                      left: 18,
                       child: GestureDetector(
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) => const SignInScreen()),
+                            MaterialPageRoute(
+                              builder: (context) => const SignInScreen(),
+                            ),
                           );
                         },
-                        child: _circleButton(Icons.person_outline_rounded, isDark, primary),
+                        child: _circleButton(
+                          Icons.person_outline_rounded,
+                          isDark,
+                          primary,
+                        ),
                       ),
                     ),
                   ],
@@ -202,7 +262,11 @@ class _GuidanceScreenState extends State<GuidanceScreen> {
                     Text(
                       "Connect with verified professionals\n& trained peers.",
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(fontSize: 13.5, height: 1.7, color: textSecondary),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5,
+                        height: 1.7,
+                        color: textSecondary,
+                      ),
                     ),
 
                     const SizedBox(height: 28),
@@ -212,7 +276,9 @@ class _GuidanceScreenState extends State<GuidanceScreen> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const VerifyCampusScreen()),
+                          MaterialPageRoute(
+                            builder: (context) => const VerifyCampusScreen(),
+                          ),
                         );
                       },
                       child: const GlassButton(text: "Continue"),
@@ -231,7 +297,8 @@ class _GuidanceScreenState extends State<GuidanceScreen> {
 
   Widget _smallOrb(double size, bool isDark) {
     return Container(
-      width: size, height: size,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: RadialGradient(
@@ -245,11 +312,14 @@ class _GuidanceScreenState extends State<GuidanceScreen> {
 
   Widget _circleButton(IconData icon, bool isDark, Color primary) {
     return Container(
-      width: 42, height: 42,
+      width: 42,
+      height: 42,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        border: Border.all(color: primary.withOpacity(0.25)),
-        color: isDark ? Colors.black.withOpacity(0.18) : Colors.white.withOpacity(0.6),
+        border: Border.all(color: primary.withValues(alpha: 0.25)),
+        color: isDark
+            ? Colors.black.withValues(alpha: 0.18)
+            : Colors.white.withValues(alpha: 0.6),
       ),
       child: Icon(icon, size: 18, color: primary),
     );

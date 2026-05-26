@@ -39,9 +39,13 @@ class _PeerOptionScreenState extends State<PeerOptionScreen> {
         : const Color(0xFF53B29A);
     final Color bg = isDark ? const Color(0xFF071011) : const Color(0xFFF6F3ED);
     final Color cardColor = isDark ? const Color(0xFF111C1E) : Colors.white;
-    final Color borderColor = isDark ? const Color(0xFF1E3035) : const Color(0xFFE7E2D8);
+    final Color borderColor = isDark
+        ? const Color(0xFF1E3035)
+        : const Color(0xFFE7E2D8);
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1B2722);
-    final Color textSecondary = isDark ? Colors.white38 : const Color(0xFF70737C);
+    final Color textSecondary = isDark
+        ? Colors.white38
+        : const Color(0xFF70737C);
 
     return Scaffold(
       backgroundColor: bg,
@@ -55,7 +59,11 @@ class _PeerOptionScreenState extends State<PeerOptionScreen> {
               const SizedBox(height: 20),
               GestureDetector(
                 onTap: () => Navigator.pop(context),
-                child: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white54 : const Color(0xFF70737C), size: 20),
+                child: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: isDark ? Colors.white54 : const Color(0xFF70737C),
+                  size: 20,
+                ),
               ),
               const SizedBox(height: 20),
               Text(
@@ -92,7 +100,10 @@ class _PeerOptionScreenState extends State<PeerOptionScreen> {
                 "See Recommendations",
                 "Matches based on your shared interests",
                 Icons.auto_awesome_outlined,
-                () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RecommendScreen())),
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const RecommendScreen()),
+                ),
                 isDark: isDark,
                 primary: primary,
                 cardColor: cardColor,
@@ -108,7 +119,9 @@ class _PeerOptionScreenState extends State<PeerOptionScreen> {
                 Icons.account_balance_outlined,
                 () {
                   Navigator.of(context, rootNavigator: true).push(
-                    MaterialPageRoute(builder: (_) => InstitutionalSupportScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => InstitutionalSupportScreen(),
+                    ),
                   );
                 },
                 isDark: isDark,
@@ -149,7 +162,13 @@ class _PeerOptionScreenState extends State<PeerOptionScreen> {
           border: Border.all(color: borderColor),
           boxShadow: isDark
               ? []
-              : [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
         ),
         child: Row(
           children: [
@@ -157,7 +176,7 @@ class _PeerOptionScreenState extends State<PeerOptionScreen> {
               height: 54,
               width: 54,
               decoration: BoxDecoration(
-                color: primary.withOpacity(0.1),
+                color: primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(18),
               ),
               child: Icon(icon, color: primary, size: 26),
@@ -167,17 +186,32 @@ class _PeerOptionScreenState extends State<PeerOptionScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary)),
+                  Text(
+                    title,
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: textPrimary,
+                    ),
+                  ),
                   const SizedBox(height: 3),
-                  Text(sub, style: GoogleFonts.poppins(color: textSecondary, fontSize: 10.5)),
+                  Text(
+                    sub,
+                    style: GoogleFonts.poppins(
+                      color: textSecondary,
+                      fontSize: 10.5,
+                    ),
+                  ),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded, color: primary.withOpacity(0.4)),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: primary.withValues(alpha: 0.4),
+            ),
           ],
         ),
       ),
     );
   }
 }
-

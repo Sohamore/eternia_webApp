@@ -51,7 +51,7 @@
 //     final Color bg = isDark ? const Color(0xFF071011) : const Color(0xFFF9F8F4);
 //     final Color textColor = isDark ? Colors.white : const Color(0xFF1B2722);
 //     final Color innerCardColor = isDark ? const Color(0xFF141D1F) : Colors.white;
-//     final Color borderColor = isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE7E2D8);
+//     final Color borderColor = isDark ? Colors.white.withValues(alpha:0.08) : const Color(0xFFE7E2D8);
 
 //     final query = _query.trim().toLowerCase();
 //     final recent = query.isEmpty
@@ -82,7 +82,7 @@
 //                     borderRadius: BorderRadius.circular(24),
 //                     border: Border.all(color: borderColor),
 //                     boxShadow: [
-//                       if (!isDark) BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))
+//                       if (!isDark) BoxShadow(color: Colors.black.withValues(alpha:0.03), blurRadius: 10, offset: const Offset(0, 4))
 //                     ]
 //                   ),
 //                   child: Row(
@@ -133,7 +133,7 @@
 //                         margin: const EdgeInsets.only(right: 12),
 //                         padding: const EdgeInsets.symmetric(horizontal: 20),
 //                         decoration: BoxDecoration(
-//                           color: isSelected ? primaryColor : (isDark ? Colors.white.withOpacity(0.05) : Colors.white),
+//                           color: isSelected ? primaryColor : (isDark ? Colors.white.withValues(alpha:0.05) : Colors.white),
 //                           borderRadius: BorderRadius.circular(24),
 //                           border: Border.all(color: isSelected ? primaryColor : borderColor),
 //                         ),
@@ -228,7 +228,7 @@
 //                             Container(
 //                               height: 60, width: 60,
 //                               decoration: BoxDecoration(
-//                                 color: cardColor.withOpacity(0.15),
+//                                 color: cardColor.withValues(alpha:0.15),
 //                                 borderRadius: BorderRadius.circular(16),
 //                               ),
 //                               child: Icon(item["image"] as IconData, color: cardColor, size: 28),
@@ -241,7 +241,7 @@
 //                                   Container(
 //                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
 //                                     decoration: BoxDecoration(
-//                                       color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.1),
+//                                       color: isDark ? Colors.white.withValues(alpha:0.05) : Colors.grey.withValues(alpha:0.1),
 //                                       borderRadius: BorderRadius.circular(8),
 //                                     ),
 //                                     child: Text(item["type"] as String, style: GoogleFonts.poppins(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 9, fontWeight: FontWeight.bold)),
@@ -277,9 +277,9 @@
 //           child: Container(
 //             padding: const EdgeInsets.all(10),
 //             decoration: BoxDecoration(
-//               color: Colors.white.withOpacity(0.05),
+//               color: Colors.white.withValues(alpha:0.05),
 //               shape: BoxShape.circle,
-//               border: Border.all(color: Colors.grey.withOpacity(0.2)),
+//               border: Border.all(color: Colors.grey.withValues(alpha:0.2)),
 //             ),
 //             child: Icon(Icons.arrow_back_ios_new, color: textColor, size: 20),
 //           ),
@@ -291,7 +291,7 @@
 //             children: [
 //               Text("Discover", style: GoogleFonts.playfairDisplay(color: textColor, fontSize: 38, height: 1.1, fontWeight: FontWeight.bold)),
 //               const SizedBox(height: 8),
-//               Text("Find resources, spaces, and guides.", style: GoogleFonts.poppins(color: primaryColor.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w500)),
+//               Text("Find resources, spaces, and guides.", style: GoogleFonts.poppins(color: primaryColor.withValues(alpha:0.7), fontSize: 13, fontWeight: FontWeight.w500)),
 //             ],
 //           ),
 //         ),
@@ -300,6 +300,6 @@
 //   }
 
 //   Widget _buildSectionTitle(String title, Color color) {
-//     return Text(title, style: GoogleFonts.poppins(color: color.withOpacity(0.6), fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold));
+//     return Text(title, style: GoogleFonts.poppins(color: color.withValues(alpha:0.6), fontSize: 11, letterSpacing: 2, fontWeight: FontWeight.bold));
 //   }
 // }

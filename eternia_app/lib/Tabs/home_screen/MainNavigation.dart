@@ -49,7 +49,6 @@ class _MainNavigationState extends State<MainNavigation> {
         backgroundColor: theme.bg,
         body: Stack(
           children: [
-
             // Background glow
             Positioned(
               top: -100,
@@ -61,7 +60,7 @@ class _MainNavigationState extends State<MainNavigation> {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      theme.primary.withOpacity(0.06),
+                      theme.primary.withValues(alpha: 0.06),
                       Colors.transparent,
                     ],
                   ),
@@ -69,10 +68,7 @@ class _MainNavigationState extends State<MainNavigation> {
               ),
             ),
 
-            IndexedStack(
-              index: _selectedIndex,
-              children: _pages,
-            ),
+            IndexedStack(index: _selectedIndex, children: _pages),
 
             Align(
               alignment: Alignment.bottomCenter,

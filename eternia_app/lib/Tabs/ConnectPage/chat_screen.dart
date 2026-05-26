@@ -37,12 +37,17 @@ class _ChatScreenState extends State<ChatScreen> {
     if (widget.sessionId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         if (widget.isExpertChat) {
-          final appointmentsProvider = Provider.of<AppointmentsProvider>(context, listen: false);
+          final appointmentsProvider = Provider.of<AppointmentsProvider>(
+            context,
+            listen: false,
+          );
           await appointmentsProvider.fetchMessages(widget.sessionId!);
           _syncMessages(appointmentsProvider.messages);
 
           // Start polling every 2 seconds
-          _pollTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
+          _pollTimer = Timer.periodic(const Duration(seconds: 2), (
+            timer,
+          ) async {
             if (mounted) {
               await appointmentsProvider.fetchMessages(widget.sessionId!);
               _syncMessages(appointmentsProvider.messages);
@@ -111,6 +116,117 @@ class _ChatScreenState extends State<ChatScreen> {
     });
   }
 
+  void _handleEndSession() {
+    final isDark = Provider.of<ThemeProvider>(context, listen: false).isDark;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: AlertDialog(
+          backgroundColor:
+              (isDark ? const Color(0xFF071011) : const Color(0xFFF6F3ED))
+                  .withValues(alpha: 0.95),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(
+              color: isDark
+                  ? Colors.white10
+                  : Colors.black.withValues(alpha: 0.05),
+            ),
+          ),
+          title: Text(
+            "End Session?",
+            style: GoogleFonts.playfairDisplay(
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : const Color(0xFF1B2722),
+            ),
+          ),
+          content: Text(
+            "Are you sure you want to end this conversation session? All temporary safety states will be cleared.",
+            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                "Cancel",
+                style: GoogleFonts.poppins(color: Colors.grey),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext); // Close dialog
+
+                // Show loading spinner
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (loadingContext) => const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Color(0xFF53B29A),
+                      ),
+                    ),
+                  ),
+                );
+
+                bool success = false;
+                if (widget.sessionId != null) {
+                  if (widget.isExpertChat) {
+                    success = await Provider.of<AppointmentsProvider>(
+                      context,
+                      listen: false,
+                    ).completeSession(widget.sessionId!);
+                  } else {
+                    success = await Provider.of<PeersProvider>(
+                      context,
+                      listen: false,
+                    ).endSession(widget.sessionId!);
+                  }
+                } else {
+                  success = true;
+                }
+
+                if (mounted) {
+                  Navigator.pop(context); // Close loading spinner
+                  if (success) {
+                    Navigator.pop(context); // Exit ChatScreen
+                  } else {
+                    final error = widget.isExpertChat
+                        ? Provider.of<AppointmentsProvider>(
+                            context,
+                            listen: false,
+                          ).error
+                        : Provider.of<PeersProvider>(
+                            context,
+                            listen: false,
+                          ).error;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Failed to end session: ${error ?? 'Unknown error'}",
+                        ),
+                        backgroundColor: const Color(0xFFD9534F),
+                      ),
+                    );
+                  }
+                }
+              },
+              child: Text(
+                "End",
+                style: GoogleFonts.poppins(
+                  color: const Color(0xFFFF8A8A),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _sendMessage() async {
     if (_controller.text.trim().isEmpty) return;
 
@@ -134,8 +250,14 @@ class _ChatScreenState extends State<ChatScreen> {
     // Send via provider if sessionId available
     if (widget.sessionId != null) {
       if (widget.isExpertChat) {
-        final appointmentsProvider = Provider.of<AppointmentsProvider>(context, listen: false);
-        final success = await appointmentsProvider.sendMessage(widget.sessionId!, userText);
+        final appointmentsProvider = Provider.of<AppointmentsProvider>(
+          context,
+          listen: false,
+        );
+        final success = await appointmentsProvider.sendMessage(
+          widget.sessionId!,
+          userText,
+        );
         if (success && mounted) {
           await appointmentsProvider.fetchMessages(widget.sessionId!);
           _syncMessages(appointmentsProvider.messages);
@@ -166,17 +288,17 @@ class _ChatScreenState extends State<ChatScreen> {
         ? Colors.white38
         : const Color(0xFF70737C);
     final Color cardColor = isDark
-        ? Colors.white.withOpacity(0.04)
-        : Colors.white.withOpacity(0.7);
+        ? Colors.white.withValues(alpha: 0.04)
+        : Colors.white.withValues(alpha: 0.7);
     final Color borderColor = isDark
-        ? Colors.white.withOpacity(0.07)
+        ? Colors.white.withValues(alpha: 0.07)
         : const Color(0xFFE7E2D8);
     final Color sentBubbleColor = isDark
         ? const Color(0xFF15483E)
-        : primary.withOpacity(0.15);
+        : primary.withValues(alpha: 0.15);
     final Color receivedBubbleColor = isDark
-        ? Colors.white.withOpacity(0.08)
-        : Colors.grey.withOpacity(0.1);
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.grey.withValues(alpha: 0.1);
 
     return Scaffold(
       backgroundColor: bg,
@@ -237,39 +359,42 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                         ],
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          color: const Color(
-                            0xFF4A1E1E,
-                          ).withOpacity(isDark ? 0.3 : 0.1),
-                          border: Border.all(
+                      GestureDetector(
+                        onTap: _handleEndSession,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
                             color: const Color(
                               0xFF4A1E1E,
-                            ).withOpacity(isDark ? 1.0 : 0.4),
+                            ).withValues(alpha: isDark ? 0.3 : 0.1),
+                            border: Border.all(
+                              color: const Color(
+                                0xFF4A1E1E,
+                              ).withValues(alpha: isDark ? 1.0 : 0.4),
+                            ),
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.lock_outline,
-                              color: Color(0xFFFF8A8A),
-                              size: 14,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              "End Session",
-                              style: GoogleFonts.poppins(
-                                color: const Color(0xFFFF8A8A),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.lock_outline,
+                                color: Color(0xFFFF8A8A),
+                                size: 14,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 6),
+                              Text(
+                                "End Session",
+                                style: GoogleFonts.poppins(
+                                  color: const Color(0xFFFF8A8A),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ],
@@ -293,7 +418,7 @@ class _ChatScreenState extends State<ChatScreen> {
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: primary.withOpacity(0.2),
+                                color: primary.withValues(alpha: 0.2),
                               ),
                               color: cardColor,
                             ),
@@ -311,7 +436,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                             padding: const EdgeInsets.all(4),
                                             decoration: BoxDecoration(
                                               shape: BoxShape.circle,
-                                              color: primary.withOpacity(0.1),
+                                              color: primary.withValues(
+                                                alpha: 0.1,
+                                              ),
                                             ),
                                             child: Icon(
                                               Icons.verified_user_outlined,
@@ -406,8 +533,8 @@ class _ChatScreenState extends State<ChatScreen> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
                           color: isDark
-                              ? Colors.white.withOpacity(0.05)
-                              : Colors.white.withOpacity(0.8),
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.white.withValues(alpha: 0.8),
                           border: Border.all(color: borderColor),
                         ),
                         child: Row(
@@ -507,8 +634,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                                     shape: BoxShape.circle,
 
                                                     color: isSelected
-                                                        ? primary.withOpacity(
-                                                            0.14,
+                                                        ? primary.withValues(
+                                                            alpha: 0.14,
                                                           )
                                                         : Colors.transparent,
 
@@ -551,8 +678,8 @@ class _ChatScreenState extends State<ChatScreen> {
                                   shape: BoxShape.circle,
 
                                   color: isDark
-                                      ? Colors.white.withOpacity(0.05)
-                                      : Colors.black.withOpacity(0.03),
+                                      ? Colors.white.withValues(alpha: 0.05)
+                                      : Colors.black.withValues(alpha: 0.03),
 
                                   border: Border.all(
                                     color: isDark
@@ -640,8 +767,8 @@ class _ChatScreenState extends State<ChatScreen> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: isDark
-                ? Colors.white.withOpacity(0.05)
-                : Colors.grey.withOpacity(0.1),
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.grey.withValues(alpha: 0.1),
             border: Border.all(color: borderColor),
           ),
           child: Icon(
@@ -754,9 +881,9 @@ class _ChatScreenState extends State<ChatScreen> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: isDark
-                ? Colors.white.withOpacity(0.05)
-                : primary.withOpacity(0.08),
-            border: Border.all(color: primary.withOpacity(0.3)),
+                ? Colors.white.withValues(alpha: 0.05)
+                : primary.withValues(alpha: 0.08),
+            border: Border.all(color: primary.withValues(alpha: 0.3)),
           ),
           child: Icon(Icons.eco, color: primary, size: 18),
         ),

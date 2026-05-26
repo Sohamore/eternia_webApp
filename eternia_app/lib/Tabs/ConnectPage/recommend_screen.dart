@@ -18,12 +18,15 @@ class _RecommendScreenState extends State<RecommendScreen> {
   void _handleJoin(String groupName, Color primary) {
     if (_joinStates[groupName] == 'joined') {
       // Already joined, just navigate
-      Navigator.push(context, MaterialPageRoute(
-        builder: (context) => GroupChatScreen(
-          groupName: groupName,
-          onLeave: () => setState(() => _joinStates[groupName] = null),
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => GroupChatScreen(
+            groupName: groupName,
+            onLeave: () => setState(() => _joinStates[groupName] = null),
+          ),
         ),
-      ));
+      );
       return;
     }
 
@@ -33,13 +36,18 @@ class _RecommendScreenState extends State<RecommendScreen> {
     Future.delayed(const Duration(seconds: 1), () {
       if (!mounted) return;
       setState(() => _joinStates[groupName] = 'joined');
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Welcome to $groupName! Your safe space is ready.", style: GoogleFonts.poppins(fontSize: 12)),
+          content: Text(
+            "Welcome to $groupName! Your safe space is ready.",
+            style: GoogleFonts.poppins(fontSize: 12),
+          ),
           backgroundColor: primary,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -47,12 +55,15 @@ class _RecommendScreenState extends State<RecommendScreen> {
       // Navigate after a small delay to let user see the checkmark
       Future.delayed(const Duration(milliseconds: 500), () {
         if (!mounted) return;
-        Navigator.push(context, MaterialPageRoute(
-          builder: (context) => GroupChatScreen(
-            groupName: groupName,
-            onLeave: () => setState(() => _joinStates[groupName] = null),
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => GroupChatScreen(
+              groupName: groupName,
+              onLeave: () => setState(() => _joinStates[groupName] = null),
+            ),
           ),
-        ));
+        );
       });
     });
   }
@@ -67,12 +78,14 @@ class _RecommendScreenState extends State<RecommendScreen> {
         : const Color(0xFF53B29A);
     final Color bg = isDark ? const Color(0xFF071011) : const Color(0xFFF6F3ED);
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1B2722);
-    final Color textSecondary = isDark ? Colors.white38 : const Color(0xFF70737C);
+    final Color textSecondary = isDark
+        ? Colors.white38
+        : const Color(0xFF70737C);
     final Color cardColor = isDark
-        ? Colors.white.withOpacity(0.06)
-        : Colors.white.withOpacity(0.85);
+        ? Colors.white.withValues(alpha: 0.06)
+        : Colors.white.withValues(alpha: 0.85);
     final Color borderColor = isDark
-        ? Colors.white.withOpacity(0.1)
+        ? Colors.white.withValues(alpha: 0.1)
         : const Color(0xFFE7E2D8);
 
     return Scaffold(
@@ -88,18 +101,36 @@ class _RecommendScreenState extends State<RecommendScreen> {
               _buildHeader(textPrimary, textSecondary, primary, isDark),
               const SizedBox(height: 32),
               _buildRecommendationCard(
-                "Peer Circle #242", "Anxiety Support", "12 Active Nodes",
-                isDark, primary, cardColor, borderColor, textPrimary,
+                "Peer Circle #242",
+                "Anxiety Support",
+                "12 Active Nodes",
+                isDark,
+                primary,
+                cardColor,
+                borderColor,
+                textPrimary,
               ),
               const SizedBox(height: 16),
               _buildRecommendationCard(
-                "Meditation Club", "Mindfulness", "45 Active Nodes",
-                isDark, primary, cardColor, borderColor, textPrimary,
+                "Meditation Club",
+                "Mindfulness",
+                "45 Active Nodes",
+                isDark,
+                primary,
+                cardColor,
+                borderColor,
+                textPrimary,
               ),
               const SizedBox(height: 16),
               _buildRecommendationCard(
-                "Academic Hub", "Study Stress", "28 Active Nodes",
-                isDark, primary, cardColor, borderColor, textPrimary,
+                "Academic Hub",
+                "Study Stress",
+                "28 Active Nodes",
+                isDark,
+                primary,
+                cardColor,
+                borderColor,
+                textPrimary,
               ),
               const SizedBox(height: 120),
             ],
@@ -109,18 +140,32 @@ class _RecommendScreenState extends State<RecommendScreen> {
     );
   }
 
-  Widget _buildHeader(Color textPrimary, Color textSecondary, Color primary, bool isDark) {
+  Widget _buildHeader(
+    Color textPrimary,
+    Color textSecondary,
+    Color primary,
+    bool isDark,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         GestureDetector(
           onTap: () => Navigator.pop(context),
-          child: Icon(Icons.arrow_back, size: 20, color: isDark ? Colors.white70 : Colors.black54),
+          child: Icon(
+            Icons.arrow_back,
+            size: 20,
+            color: isDark ? Colors.white70 : Colors.black54,
+          ),
         ),
         const SizedBox(height: 20),
         Text(
           "Peer\nRecommendations",
-          style: GoogleFonts.cormorantGaramond(color: primary, fontSize: 36, fontWeight: FontWeight.bold, height: 1),
+          style: GoogleFonts.cormorantGaramond(
+            color: primary,
+            fontSize: 36,
+            fontWeight: FontWeight.bold,
+            height: 1,
+          ),
         ),
         const SizedBox(height: 8),
         Text(
@@ -132,8 +177,14 @@ class _RecommendScreenState extends State<RecommendScreen> {
   }
 
   Widget _buildRecommendationCard(
-    String title, String tag, String nodes,
-    bool isDark, Color primary, Color cardColor, Color borderColor, Color textPrimary,
+    String title,
+    String tag,
+    String nodes,
+    bool isDark,
+    Color primary,
+    Color cardColor,
+    Color borderColor,
+    Color textPrimary,
   ) {
     final state = _joinStates[title];
 
@@ -143,13 +194,25 @@ class _RecommendScreenState extends State<RecommendScreen> {
         color: cardColor,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: borderColor),
-        boxShadow: isDark ? [] : [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: isDark
+            ? []
+            : [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
       ),
       child: Row(
         children: [
           Container(
-            height: 54, width: 54,
-            decoration: BoxDecoration(color: primary.withOpacity(0.1), borderRadius: BorderRadius.circular(18)),
+            height: 54,
+            width: 54,
+            decoration: BoxDecoration(
+              color: primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(18),
+            ),
             child: Icon(Icons.people_outline, color: primary),
           ),
           const SizedBox(width: 20),
@@ -157,9 +220,27 @@ class _RecommendScreenState extends State<RecommendScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(tag.toUpperCase(), style: GoogleFonts.poppins(color: primary, fontSize: 8, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
-                Text(title, style: GoogleFonts.playfairDisplay(fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary)),
-                Text(nodes, style: GoogleFonts.poppins(color: Colors.grey, fontSize: 10)),
+                Text(
+                  tag.toUpperCase(),
+                  style: GoogleFonts.poppins(
+                    color: primary,
+                    fontSize: 8,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.5,
+                  ),
+                ),
+                Text(
+                  title,
+                  style: GoogleFonts.playfairDisplay(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: textPrimary,
+                  ),
+                ),
+                Text(
+                  nodes,
+                  style: GoogleFonts.poppins(color: Colors.grey, fontSize: 10),
+                ),
               ],
             ),
           ),
@@ -171,13 +252,26 @@ class _RecommendScreenState extends State<RecommendScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: state == 'joined' ? primary : Colors.transparent,
-                border: Border.all(color: state == 'joined' ? primary : primary.withOpacity(0.2)),
+                border: Border.all(
+                  color: state == 'joined'
+                      ? primary
+                      : primary.withValues(alpha: 0.2),
+                ),
               ),
               child: state == 'loading'
-                  ? SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: primary))
+                  ? SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: primary,
+                      ),
+                    )
                   : Icon(
                       state == 'joined' ? Icons.check : Icons.add,
-                      color: state == 'joined' ? (isDark ? Colors.black : Colors.white) : primary,
+                      color: state == 'joined'
+                          ? (isDark ? Colors.black : Colors.white)
+                          : primary,
                       size: 18,
                     ),
             ),
@@ -187,4 +281,3 @@ class _RecommendScreenState extends State<RecommendScreen> {
     );
   }
 }
-

@@ -39,15 +39,16 @@ class OnboardingScreen extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                       Text(
+                        Text(
                           "Eternia",
 
                           style: GoogleFonts.playfairDisplay(
                             fontSize: 28,
                             fontWeight: FontWeight.w600,
 
-                            color: isDark ?  const Color(0xFF67F5D4)
-        : const Color(0xFF53B29A),
+                            color: isDark
+                                ? const Color(0xFF67F5D4)
+                                : const Color(0xFF53B29A),
                           ),
                         ),
                         const SizedBox(width: 40),
@@ -65,24 +66,32 @@ class OnboardingScreen extends StatelessWidget {
                         gradient: LinearGradient(
                           colors: isDark
                               ? [
-                                  (isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE7E2D8)),
-                                  Colors.white.withOpacity(0.02),
+                                  (isDark
+                                      ? Colors.white.withValues(alpha: 0.08)
+                                      : const Color(0xFFE7E2D8)),
+                                  Colors.white.withValues(alpha: 0.02),
                                 ]
                               : [
-                                  const Color(0xFF547850).withOpacity(0.08),
-                                  const Color(0xFF547850).withOpacity(0.02),
+                                  const Color(
+                                    0xFF547850,
+                                  ).withValues(alpha: 0.08),
+                                  const Color(
+                                    0xFF547850,
+                                  ).withValues(alpha: 0.02),
                                 ],
                         ),
                         border: Border.all(
                           color: isDark
-                              ? Colors.white.withOpacity(0.1)
-                              : Colors.black.withOpacity(0.05),
+                              ? Colors.white.withValues(alpha: 0.1)
+                              : Colors.black.withValues(alpha: 0.05),
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: isDark
-                                ? AppColors.mint.withOpacity(0.15)
-                                : const Color(0xFF547850).withOpacity(0.1),
+                                ? AppColors.mint.withValues(alpha: 0.15)
+                                : const Color(
+                                    0xFF547850,
+                                  ).withValues(alpha: 0.1),
                             blurRadius: 40,
                             spreadRadius: 2,
                           ),
@@ -211,12 +220,19 @@ class OnboardingScreen extends StatelessWidget {
                       children: [
                         GestureDetector(
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacySafetyScreen()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PrivacySafetyScreen(),
+                              ),
+                            );
                           },
                           child: Text(
                             "Privacy Policy",
                             style: TextStyle(
-                              color: isDark ? Colors.white54 : const Color(0xFF70737C),
+                              color: isDark
+                                  ? Colors.white54
+                                  : const Color(0xFF70737C),
                             ),
                           ),
                         ),
@@ -227,7 +243,9 @@ class OnboardingScreen extends StatelessWidget {
                           height: 5,
                           width: 5,
                           decoration: BoxDecoration(
-                            color: isDark ? Colors.white38 : const Color(0xFF9DA3A8),
+                            color: isDark
+                                ? Colors.white38
+                                : const Color(0xFF9DA3A8),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -236,12 +254,19 @@ class OnboardingScreen extends StatelessWidget {
 
                         GestureDetector(
                           onTap: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacySafetyScreen()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PrivacySafetyScreen(),
+                              ),
+                            );
                           },
                           child: Text(
                             "Terms of Service",
                             style: TextStyle(
-                              color: isDark ? Colors.white54 : const Color(0xFF70737C),
+                              color: isDark
+                                  ? Colors.white54
+                                  : const Color(0xFF70737C),
                             ),
                           ),
                         ),

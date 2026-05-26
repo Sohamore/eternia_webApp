@@ -23,79 +23,48 @@ class CustomEterniaTextField extends StatelessWidget {
     return TextField(
       controller: controller,
 
-      style: TextStyle(
-        color:
-            isDark
-                ? Colors.white
-                : Colors.black87,
-      ),
+      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
 
       decoration: InputDecoration(
         hintText: hint,
 
-        hintStyle: TextStyle(
-          color:
-              isDark
-                  ? Colors.white38
-                  : Colors.black38,
-        ),
+        hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black38),
 
         prefixIcon: Icon(
           icon,
 
-          color:
-              isDark
-                  ? const Color(0xFF71E6D4)
-                  : const Color(0xFF7BA268),
+          color: isDark ? const Color(0xFF71E6D4) : const Color(0xFF7BA268),
         ),
 
         filled: true,
 
-        fillColor:
-            isDark
-                ? Colors.white.withOpacity(.04)
-                : Colors.white,
+        fillColor: isDark ? Colors.white.withValues(alpha: .04) : Colors.white,
 
-        contentPadding:
-            const EdgeInsets.symmetric(
-          vertical: 18,
-        ),
+        contentPadding: const EdgeInsets.symmetric(vertical: 18),
 
         border: OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(20),
 
           borderSide: BorderSide(
-            color:
-                isDark
-                    ? Colors.white10
-                    : Colors.black12,
+            color: isDark ? Colors.white10 : Colors.black12,
           ),
         ),
 
         enabledBorder: OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(20),
 
           borderSide: BorderSide(
-            color:
-                isDark
-                    ? Colors.white10
-                    : Colors.black12,
+            color: isDark ? Colors.white10 : Colors.black12,
           ),
         ),
 
         focusedBorder: OutlineInputBorder(
-          borderRadius:
-              BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(20),
 
           borderSide: BorderSide(
             width: 1.3,
 
-            color:
-                isDark
-                    ? const Color(0xFF71E6D4)
-                    : const Color(0xFF7BA268),
+            color: isDark ? const Color(0xFF71E6D4) : const Color(0xFF7BA268),
           ),
         ),
       ),

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-
 class DailyInsightDetailScreen extends StatelessWidget {
   final String insight;
   const DailyInsightDetailScreen({super.key, required this.insight});
@@ -17,7 +16,9 @@ class DailyInsightDetailScreen extends StatelessWidget {
     final textPrimary = isDark ? Colors.white : const Color(0xFF1B2722);
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF071011) : const Color(0xFFF6F3ED),
+      backgroundColor: isDark
+          ? const Color(0xFF071011)
+          : const Color(0xFFF6F3ED),
       body: Stack(
         children: [
           // Background Glows
@@ -30,7 +31,7 @@ class DailyInsightDetailScreen extends StatelessWidget {
                 height: 300,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: primary.withOpacity(0.1),
+                  color: primary.withValues(alpha: 0.1),
                 ),
               ),
             ),
@@ -68,9 +69,13 @@ class DailyInsightDetailScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.05)
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(30),
-                            border: Border.all(color: primary.withOpacity(0.2)),
+                            border: Border.all(
+                              color: primary.withValues(alpha: 0.2),
+                            ),
                           ),
                           child: Column(
                             children: [
@@ -88,7 +93,7 @@ class DailyInsightDetailScreen extends StatelessWidget {
                                 "Take three deep breaths. Inhale for 4 seconds, hold for 4, and exhale for 8. Feel the tension leave your body.",
                                 textAlign: TextAlign.center,
                                 style: GoogleFonts.poppins(
-                                  color: textPrimary.withOpacity(0.7),
+                                  color: textPrimary.withValues(alpha: 0.7),
                                   fontSize: 15,
                                   height: 1.6,
                                 ),
@@ -106,7 +111,7 @@ class DailyInsightDetailScreen extends StatelessWidget {
                     child: Text(
                       "ETERNIA • DAILY WISDOM",
                       style: GoogleFonts.poppins(
-                        color: textPrimary.withOpacity(0.3),
+                        color: textPrimary.withValues(alpha: 0.3),
                         fontSize: 12,
                         letterSpacing: 4,
                         fontWeight: FontWeight.w600,

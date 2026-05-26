@@ -59,6 +59,16 @@ class AppointmentsService {
     return Map<String, dynamic>.from(response.data as Map);
   }
 
+  /// PATCH /appointments/:id/complete
+  /// Returns: success boolean
+  Future<Map<String, dynamic>> complete(String id, [String? notes]) async {
+    final response = await _api.patch(
+      '/appointments/$id/complete',
+      data: {if (notes != null) 'notes': notes},
+    );
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
   /// PATCH /appointments/:id/reschedule
   /// Returns: updated appointment with new slot time
   Future<Map<String, dynamic>> reschedule(

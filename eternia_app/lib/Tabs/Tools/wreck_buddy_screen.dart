@@ -57,7 +57,7 @@ class _WreckBuddyScreenState extends State<WreckBuddyScreen> {
 
     final Color cardBg = isDark
         ? const Color(0xFF0E1718)
-        : Colors.white.withOpacity(0.92);
+        : Colors.white.withValues(alpha: 0.92);
 
     final Color borderColor = isDark
         ? const Color(0xFF1A2B2B)
@@ -165,7 +165,7 @@ class _WreckBuddyScreenState extends State<WreckBuddyScreen> {
 
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
 
                     blurRadius: 10,
                   ),
@@ -224,11 +224,11 @@ class _WreckBuddyScreenState extends State<WreckBuddyScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
 
-                  color: primaryGreen.withOpacity(0.10),
+                  color: primaryGreen.withValues(alpha: 0.10),
 
                   boxShadow: [
                     BoxShadow(
-                      color: primaryGreen.withOpacity(0.25),
+                      color: primaryGreen.withValues(alpha: 0.25),
 
                       blurRadius: 90,
 
@@ -273,7 +273,7 @@ class _WreckBuddyScreenState extends State<WreckBuddyScreen> {
 
           boxShadow: [
             BoxShadow(
-              color: primaryGreen.withOpacity(0.35),
+              color: primaryGreen.withValues(alpha: 0.35),
 
               blurRadius: 24,
 

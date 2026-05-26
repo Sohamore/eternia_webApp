@@ -53,21 +53,37 @@ class _CallScreenState extends State<CallScreen> {
     return Column(
       children: [
         Container(
-          height: 120, width: 120,
+          height: 120,
+          width: 120,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: primary.withOpacity(0.2), width: 2),
+            border: Border.all(color: primary.withValues(alpha: 0.2), width: 2),
           ),
-          child: Center(child: Icon(Icons.person, size: 60, color: isDark ? Colors.grey : Colors.black38)),
+          child: Center(
+            child: Icon(
+              Icons.person,
+              size: 60,
+              color: isDark ? Colors.grey : Colors.black38,
+            ),
+          ),
         ),
         const SizedBox(height: 24),
         Text(
           "Anonymous Node",
-          style: GoogleFonts.playfairDisplay(fontSize: 32, fontWeight: FontWeight.bold, color: textPrimary),
+          style: GoogleFonts.playfairDisplay(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: textPrimary,
+          ),
         ),
         Text(
           "SECURED CONNECTION",
-          style: GoogleFonts.poppins(color: primary, fontSize: 10, letterSpacing: 3, fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(
+            color: primary,
+            fontSize: 10,
+            letterSpacing: 3,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );
@@ -76,9 +92,23 @@ class _CallScreenState extends State<CallScreen> {
   Widget _buildCallStatus(Color textPrimary, Color primary, bool isDark) {
     return Column(
       children: [
-        Text("04:22", style: GoogleFonts.poppins(fontSize: 48, fontWeight: FontWeight.w200, color: textPrimary)),
+        Text(
+          "04:22",
+          style: GoogleFonts.poppins(
+            fontSize: 48,
+            fontWeight: FontWeight.w200,
+            color: textPrimary,
+          ),
+        ),
         const SizedBox(height: 8),
-        Text("Spatial Audio Active", style: GoogleFonts.poppins(color: primary.withOpacity(0.6), fontSize: 10, fontWeight: FontWeight.bold)),
+        Text(
+          "Spatial Audio Active",
+          style: GoogleFonts.poppins(
+            color: primary.withValues(alpha: 0.6),
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ],
     );
   }
@@ -89,21 +119,40 @@ class _CallScreenState extends State<CallScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildCircleBtn(Icons.mic_off_outlined, isDark ? Colors.grey : const Color(0xFF70737C), isDark: isDark),
-          _buildCircleBtn(Icons.call_end, Colors.red, isEnd: true, isDark: isDark),
-          _buildCircleBtn(Icons.volume_up_outlined, isDark ? Colors.grey : const Color(0xFF70737C), isDark: isDark),
+          _buildCircleBtn(
+            Icons.mic_off_outlined,
+            isDark ? Colors.grey : const Color(0xFF70737C),
+            isDark: isDark,
+          ),
+          _buildCircleBtn(
+            Icons.call_end,
+            Colors.red,
+            isEnd: true,
+            isDark: isDark,
+          ),
+          _buildCircleBtn(
+            Icons.volume_up_outlined,
+            isDark ? Colors.grey : const Color(0xFF70737C),
+            isDark: isDark,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildCircleBtn(IconData icon, Color color, {bool isEnd = false, required bool isDark}) {
+  Widget _buildCircleBtn(
+    IconData icon,
+    Color color, {
+    bool isEnd = false,
+    required bool isDark,
+  }) {
     return GestureDetector(
       onTap: () => Navigator.pop(context),
       child: Container(
-        height: 70, width: 70,
+        height: 70,
+        width: 70,
         decoration: BoxDecoration(
-          color: isEnd ? color : color.withOpacity(0.1),
+          color: isEnd ? color : color.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: isEnd ? Colors.white : color, size: 28),
@@ -111,4 +160,3 @@ class _CallScreenState extends State<CallScreen> {
     );
   }
 }
-

@@ -153,9 +153,12 @@ async function deleteAvailabilitySlot(expertId, slotId) {
   return { success: true };
 }
 
-async function completeAppointment(expertId, appointmentId, notes) {
+async function completeAppointment(userId, appointmentId, notes) {
   const appointment = await prisma.appointment.findFirst({
-    where: { id: appointmentId, expert_id: expertId }
+    where: {
+      id: appointmentId,
+      OR: [{ student_id: userId }, { expert_id: userId }]
+    }
   });
   if (!appointment) throw Object.assign(new Error('Appointment not found'), { status: 404 });
 

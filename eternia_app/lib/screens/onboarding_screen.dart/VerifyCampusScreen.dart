@@ -177,7 +177,7 @@ class _VerifyCampusScreenState extends State<VerifyCampusScreen> {
                                           colors: [
                                             const Color(
                                               0xFF00F0D0,
-                                            ).withOpacity(0.35),
+                                            ).withValues(alpha: 0.35),
 
                                             Colors.transparent,
                                           ],
@@ -207,7 +207,7 @@ class _VerifyCampusScreenState extends State<VerifyCampusScreen> {
                                           BoxShadow(
                                             color: const Color(
                                               0xFF52FFE0,
-                                            ).withOpacity(0.5),
+                                            ).withValues(alpha: 0.5),
 
                                             blurRadius: 35,
                                             spreadRadius: 4,
@@ -225,13 +225,13 @@ class _VerifyCampusScreenState extends State<VerifyCampusScreen> {
                                               18,
                                             ),
 
-                                            color: Colors.white.withOpacity(
-                                              0.1,
+                                            color: Colors.white.withValues(
+                                              alpha: 0.1,
                                             ),
 
                                             border: Border.all(
-                                              color: Colors.white.withOpacity(
-                                                0.15,
+                                              color: Colors.white.withValues(
+                                                alpha: 0.15,
                                               ),
                                             ),
                                           ),
@@ -262,7 +262,7 @@ class _VerifyCampusScreenState extends State<VerifyCampusScreen> {
                                           border: Border.all(
                                             color: const Color(
                                               0xFF4FFFE3,
-                                            ).withOpacity(0.55),
+                                            ).withValues(alpha: 0.55),
 
                                             width: 1.2,
                                           ),
@@ -286,7 +286,7 @@ class _VerifyCampusScreenState extends State<VerifyCampusScreen> {
                                           border: Border.all(
                                             color: const Color(
                                               0xFF3DD8C3,
-                                            ).withOpacity(0.2),
+                                            ).withValues(alpha: 0.2),
 
                                             width: 1,
                                           ),
@@ -415,8 +415,8 @@ class _VerifyCampusScreenState extends State<VerifyCampusScreen> {
 
                         color: isDark
                             ? (isDark
-                                  ? Colors.white.withOpacity(0.04)
-                                  : Colors.white.withOpacity(0.92))
+                                  ? Colors.white.withValues(alpha: 0.04)
+                                  : Colors.white.withValues(alpha: 0.92))
                             : Colors.white,
 
                         border: Border.all(
@@ -466,7 +466,9 @@ class _VerifyCampusScreenState extends State<VerifyCampusScreen> {
                               width: double.infinity,
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
-                                color: const Color(0xFF53B29A).withOpacity(0.5),
+                                color: const Color(
+                                  0xFF53B29A,
+                                ).withValues(alpha: 0.5),
                               ),
                               child: const Center(
                                 child: SizedBox(
@@ -534,9 +536,9 @@ class _VerifyCampusScreenState extends State<VerifyCampusScreen> {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          color: Colors.red.withOpacity(0.1),
+                          color: Colors.red.withValues(alpha: 0.1),
                           border: Border.all(
-                            color: Colors.red.withOpacity(0.3),
+                            color: Colors.red.withValues(alpha: 0.3),
                           ),
                         ),
                         child: Row(
@@ -569,13 +571,13 @@ class _VerifyCampusScreenState extends State<VerifyCampusScreen> {
 
                         border: Border.all(
                           color: isDark
-                              ? const Color(0xFF67F5D4).withOpacity(0.15)
-                              : const Color(0xFF53B29A).withOpacity(0.15),
+                              ? const Color(0xFF67F5D4).withValues(alpha: 0.15)
+                              : const Color(0xFF53B29A).withValues(alpha: 0.15),
                         ),
 
                         color: isDark
-                            ? Colors.white.withOpacity(0.03)
-                            : Colors.white.withOpacity(0.75),
+                            ? Colors.white.withValues(alpha: 0.03)
+                            : Colors.white.withValues(alpha: 0.75),
                       ),
 
                       child: Row(
@@ -670,7 +672,7 @@ class _VerifyCampusScreenState extends State<VerifyCampusScreen> {
 
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF7CFFF0).withOpacity(0.8),
+            color: const Color(0xFF7CFFF0).withValues(alpha: 0.8),
 
             blurRadius: 10,
             spreadRadius: 2,
@@ -703,7 +705,7 @@ class _VerifyCampusScreenState extends State<VerifyCampusScreen> {
 
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color: Colors.grey.withOpacity(0.3),
+        color: Colors.grey.withValues(alpha: 0.3),
       ),
     );
   }

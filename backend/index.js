@@ -49,8 +49,23 @@ app.use('/api', routes);
 app.use(notFound);
 app.use(errorHandler);
 
+const http = require('http');
+const { Server } = require('socket.io');
+const { initSocket } = require('./services/socketService');
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    credentials: true
+  }
+});
+
+initSocket(io);
+
 if (!process.env.VERCEL) {
-  app.listen(PORT, '0.0.0.0', () => {
+  server.listen(PORT, '0.0.0.0', () => {
     logger.info(`Eternia server running on port ${PORT} (${process.env.NODE_ENV || 'development'})`);
   });
 }

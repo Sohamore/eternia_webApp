@@ -45,11 +45,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         child: AlertDialog(
           backgroundColor:
               (isDark ? const Color(0xFF071011) : const Color(0xFFF6F3ED))
-                  .withOpacity(0.95),
+                  .withValues(alpha: 0.95),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
             side: BorderSide(
-              color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+              color: isDark
+                  ? Colors.white10
+                  : Colors.black.withValues(alpha: 0.05),
             ),
           ),
           title: Text(
@@ -104,10 +106,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final Color bg = isDark ? const Color(0xFF071011) : const Color(0xFFF9F8F4);
     final Color textColor = isDark ? Colors.white : const Color(0xFF1B2722);
     final Color innerCardColor = isDark
-        ? Colors.white.withOpacity(0.05)
+        ? Colors.white.withValues(alpha: 0.05)
         : Colors.white;
     final Color borderColor = isDark
-        ? Colors.white.withOpacity(0.08)
+        ? Colors.white.withValues(alpha: 0.08)
         : const Color(0xFFE7E2D8);
 
     return Scaffold(
@@ -137,13 +139,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   borderRadius: BorderRadius.circular(32),
                   border: Border.all(
                     color: isDark
-                        ? Colors.white.withOpacity(0.08)
-                        : Colors.white.withOpacity(0.6),
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.white.withValues(alpha: 0.6),
                     width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: primaryColor.withOpacity(0.05),
+                      color: primaryColor.withValues(alpha: 0.05),
                       blurRadius: 20,
                       spreadRadius: 5,
                     ),
@@ -300,9 +302,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.grey.withOpacity(0.2)),
+              border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
             ),
             child: Icon(Icons.arrow_back_ios_new, color: textColor, size: 20),
           ),
@@ -325,7 +327,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Text(
                 "Customize your Eternia experience.",
                 style: GoogleFonts.poppins(
-                  color: primaryColor.withOpacity(0.7),
+                  color: primaryColor.withValues(alpha: 0.7),
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
@@ -395,7 +397,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.15),
+              color: iconColor.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: iconColor, size: 22),
@@ -429,7 +431,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             activeColor: Colors.white,
             activeTrackColor: iconColor,
             inactiveThumbColor: Colors.white,
-            inactiveTrackColor: Colors.grey.withOpacity(0.3),
+            inactiveTrackColor: Colors.grey.withValues(alpha: 0.3),
             onChanged: onChanged,
           ),
         ],
@@ -456,7 +458,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.15),
+                color: iconColor.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: iconColor, size: 22),
@@ -512,9 +514,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
-          color: dangerColor.withOpacity(0.1),
+          color: dangerColor.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: dangerColor.withOpacity(0.3)),
+          border: Border.all(color: dangerColor.withValues(alpha: 0.3)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -4,6 +4,7 @@
 // ==========================================================
 
 import 'package:eternia_ef/Screens/onboarding_screen.dart/otp_verificationScreen.dart';
+import 'package:eternia_ef/screens/onboarding_screen.dart/sign_in_screen.dart';
 import 'package:eternia_ef/widgets/glass_button.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -118,7 +119,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                     ? [
                                         const Color(
                                           0xFF00FFE0,
-                                        ).withOpacity(0.18),
+                                        ).withValues(alpha: 0.18),
 
                                         Colors.transparent,
                                       ]
@@ -139,7 +140,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                               shape: BoxShape.circle,
 
                               border: Border.all(
-                                color: primaryColor.withOpacity(0.25),
+                                color: primaryColor.withValues(alpha: 0.25),
                               ),
                             ),
                           ),
@@ -161,7 +162,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     // TITLE
                     // =================================================
                     Text(
-                      widget.mode == 'signup' ? "Verify Email" : "Reset Password",
+                      widget.mode == 'signup'
+                          ? "Verify Email"
+                          : "Reset Password",
 
                       style: GoogleFonts.playfairDisplay(
                         fontSize: 38,
@@ -194,7 +197,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     // LABEL
                     // =================================================
                     Text(
-                      widget.mode == 'signup' ? "Email Address" : "Account Identity",
+                      widget.mode == 'signup'
+                          ? "Email Address"
+                          : "Account Identity",
 
                       style: GoogleFonts.poppins(
                         fontSize: 12,
@@ -217,13 +222,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
                         color: isDark
                             ? (isDark
-                                  ? Colors.white.withOpacity(0.04)
-                                  : Colors.white.withOpacity(0.92))
+                                  ? Colors.white.withValues(alpha: 0.04)
+                                  : Colors.white.withValues(alpha: 0.92))
                             : Colors.white,
 
                         border: Border.all(
                           color: isDark
-                              ? primaryColor.withOpacity(0.25)
+                              ? primaryColor.withValues(alpha: 0.25)
                               : const Color(0xFFD9DFC8),
                         ),
                       ),
@@ -275,7 +280,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         borderRadius: BorderRadius.circular(24),
 
                         color: isDark
-                            ? Colors.white.withOpacity(0.03)
+                            ? Colors.white.withValues(alpha: 0.03)
                             : const Color(0xFFF1F0E8),
 
                         border: Border.all(
@@ -296,7 +301,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
 
-                              color: primaryColor.withOpacity(0.15),
+                              color: primaryColor.withValues(alpha: 0.15),
                             ),
 
                             child: Icon(
@@ -371,7 +376,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     //                 ? [
                     //                     const Color(
                     //                       0xFF00FFE0,
-                    //                     ).withOpacity(0.15),
+                    //                     ).withValues(alpha:0.15),
 
                     //                     Colors.transparent,
                     //                   ]
@@ -392,7 +397,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                     //           shape: BoxShape.circle,
 
                     //           border: Border.all(
-                    //             color: primaryColor.withOpacity(0.3),
+                    //             color: primaryColor.withValues(alpha:0.3),
                     //           ),
                     //         ),
                     //       ),
@@ -442,11 +447,13 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => OTPVerificationScreen(
-                                          email: email,
-                                          mode: widget.mode,
-                                          institutionId: widget.institutionId,
-                                        ),
+                                        builder: (context) =>
+                                            OTPVerificationScreen(
+                                              email: email,
+                                              mode: widget.mode,
+                                              institutionId:
+                                                  widget.institutionId,
+                                            ),
                                       ),
                                     );
                                   } else if (mounted) {
@@ -463,8 +470,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             text: auth.isLoading
                                 ? "Sending..."
                                 : (widget.mode == 'signup'
-                                    ? "Send Code"
-                                    : "Send Reset Code"),
+                                      ? "Send Code"
+                                      : "Send Reset Code"),
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.w600,
                               fontSize: 18,
@@ -475,36 +482,42 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       },
                     ),
 
-// Duplicate button removed
+                    // Duplicate button removed
                     const SizedBox(height: 24),
 
                     // =================================================
                     // FOOTER
                     // =================================================
                     Center(
-                      child: RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: "Remembered it? ",
-
-                              style: TextStyle(
-                                color: isDark
-                                    ? Colors.white54
-                                    : const Color(0xFF70737C),
-                              ),
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SignInScreen(),
                             ),
-
-                            TextSpan(
-                              text: "Sign In",
-
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-
-                                color: primaryColor,
+                          );
+                        },
+                        child: RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: "Remembered it? ",
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.white54
+                                      : const Color(0xFF70737C),
+                                ),
                               ),
-                            ),
-                          ],
+                              TextSpan(
+                                text: "Sign In",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

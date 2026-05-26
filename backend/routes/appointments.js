@@ -14,7 +14,7 @@ router.patch('/:id/room', authenticate, ctrl.updateAppointmentRoom);
 router.patch('/:id/cancel', authenticate, ctrl.cancelAppointment);
 router.post('/slots', authenticate, requireRole('expert'), ctrl.addSlot);
 router.delete('/slots/:id', authenticate, requireRole('expert'), ctrl.deleteSlot);
-router.patch('/:id/complete', authenticate, requireRole('expert'), ctrl.completeAppointment);
+router.patch('/:id/complete', authenticate, ctrl.completeAppointment);
 router.patch('/:id/reschedule', authenticate, requireRole('expert'), ctrl.rescheduleAppointment);
 router.post('/:id/escalate', authenticate, requireRole('expert'), ctrl.escalateAppointment);
 router.get('/:id/messages', authenticate, ctrl.getAppointmentMessages);

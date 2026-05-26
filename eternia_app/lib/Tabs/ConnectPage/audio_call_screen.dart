@@ -47,7 +47,10 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
-                    colors: [primary.withOpacity(0.15), Colors.transparent],
+                    colors: [
+                      primary.withValues(alpha: 0.15),
+                      Colors.transparent,
+                    ],
                   ),
                 ),
               ),
@@ -99,7 +102,7 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: primary.withOpacity(0.3),
+                      color: primary.withValues(alpha: 0.3),
                       width: 2,
                     ),
                   ),
@@ -201,11 +204,13 @@ class _AudioCallScreenState extends State<AudioCallScreen> {
               color: isActive
                   ? primary
                   : (isDark
-                        ? Colors.white.withOpacity(0.05)
-                        : Colors.black.withOpacity(0.05)),
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.05)),
               shape: BoxShape.circle,
               border: Border.all(
-                color: isDark ? Colors.white10 : Colors.black.withOpacity(0.1),
+                color: isDark
+                    ? Colors.white10
+                    : Colors.black.withValues(alpha: 0.1),
               ),
             ),
             child: Icon(

@@ -26,12 +26,10 @@ class GlassButton extends StatelessWidget {
       width: double.infinity,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(40),
-        gradient: LinearGradient(
-          colors: [primaryColor, primaryLight],
-        ),
+        gradient: LinearGradient(colors: [primaryColor, primaryLight]),
         boxShadow: [
           BoxShadow(
-            color: primaryColor.withOpacity(0.35),
+            color: primaryColor.withValues(alpha: 0.35),
             blurRadius: 40,
             spreadRadius: 1,
           ),
@@ -40,11 +38,13 @@ class GlassButton extends StatelessWidget {
       child: Center(
         child: Text(
           text,
-          style: style ?? TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Colors.black : Colors.white,
-          ),
+          style:
+              style ??
+              TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.black : Colors.white,
+              ),
         ),
       ),
     );

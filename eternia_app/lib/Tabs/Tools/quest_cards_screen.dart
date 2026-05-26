@@ -27,17 +27,20 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
   final List<Map<String, String>> _fallbackQuests = [
     {
       "title": "The Inner Sanctuary",
-      "desc": "Identify one thing in your life that makes you feel completely safe.",
+      "desc":
+          "Identify one thing in your life that makes you feel completely safe.",
       "icon": "🛡️",
     },
     {
       "title": "Echoes of Silence",
-      "desc": "Spend 2 minutes observing the sounds around you without judgment.",
+      "desc":
+          "Spend 2 minutes observing the sounds around you without judgment.",
       "icon": "👂",
     },
     {
       "title": "The Root of Joy",
-      "desc": "What was the last thing that made you smile without any external reason?",
+      "desc":
+          "What was the last thing that made you smile without any external reason?",
       "icon": "✨",
     },
     {
@@ -47,7 +50,8 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
     },
     {
       "title": "Present Moment",
-      "desc": "Take five deep breaths and focus purely on the sensation of air.",
+      "desc":
+          "Take five deep breaths and focus purely on the sensation of air.",
       "icon": "🌬️",
     },
   ];
@@ -88,11 +92,13 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
         child: Container(
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            color: Provider.of<ThemeProvider>(context).isDark 
-                ? const Color(0xFF0E1718) 
+            color: Provider.of<ThemeProvider>(context).isDark
+                ? const Color(0xFF0E1718)
                 : Colors.white,
             borderRadius: BorderRadius.circular(32),
-            border: Border.all(color: const Color(0xFF53B29A).withOpacity(0.2)),
+            border: Border.all(
+              color: const Color(0xFF53B29A).withValues(alpha: 0.2),
+            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -113,8 +119,8 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
                   fontSize: 14,
-                  color: Provider.of<ThemeProvider>(context).isDark 
-                      ? Colors.white70 
+                  color: Provider.of<ThemeProvider>(context).isDark
+                      ? Colors.white70
                       : Colors.black54,
                 ),
               ),
@@ -122,7 +128,10 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
               GestureDetector(
                 onTap: () => Navigator.pop(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF53B29A),
                     borderRadius: BorderRadius.circular(20),
@@ -156,18 +165,24 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
     // Use provider quests if available, otherwise fallback
     final List<Map<String, String>> _quests;
     if (providerQuests != null && providerQuests.isNotEmpty) {
-      _quests = providerQuests.map((q) => <String, String>{
-        "title": q['title'] as String? ?? "Quest",
-        "desc": q['description'] as String? ?? q['desc'] as String? ?? "",
-        "icon": q['icon'] as String? ?? "✨",
-      }).toList();
+      _quests = providerQuests
+          .map(
+            (q) => <String, String>{
+              "title": q['title'] as String? ?? "Quest",
+              "desc": q['description'] as String? ?? q['desc'] as String? ?? "",
+              "icon": q['icon'] as String? ?? "✨",
+            },
+          )
+          .toList();
     } else {
       _quests = _fallbackQuests;
     }
 
     if (questsProvider.isLoading && providerQuests == null) {
       return Scaffold(
-        backgroundColor: isDark ? const Color(0xFF071011) : const Color(0xFFF6F3ED),
+        backgroundColor: isDark
+            ? const Color(0xFF071011)
+            : const Color(0xFFF6F3ED),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -189,10 +204,10 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
                 itemCount: _quests.length,
                 itemBuilder: (context, index) {
                   return _buildQuestCard(
-                    _quests[index], 
+                    _quests[index],
                     index,
-                    isDark, 
-                    primaryColor
+                    isDark,
+                    primaryColor,
                   );
                 },
               ),
@@ -218,13 +233,13 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: isDark
-                    ? Colors.white.withOpacity(0.05)
-                    : Colors.black.withOpacity(0.03),
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.03),
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: isDark
-                      ? Colors.white.withOpacity(0.1)
-                      : Colors.black.withOpacity(0.05),
+                      ? Colors.white.withValues(alpha: 0.1)
+                      : Colors.black.withValues(alpha: 0.05),
                 ),
               ),
               child: Icon(
@@ -258,8 +273,12 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
     final bool isCompleted = _completedQuests.contains(index);
     final cardColor = isDark ? const Color(0xFF111C1E) : Colors.white;
     final borderColor = isDark
-        ? (isCompleted ? primaryColor.withOpacity(0.3) : Colors.white.withOpacity(0.08))
-        : (isCompleted ? primaryColor.withOpacity(0.3) : const Color(0xFFE7E2D8));
+        ? (isCompleted
+              ? primaryColor.withValues(alpha: 0.3)
+              : Colors.white.withValues(alpha: 0.08))
+        : (isCompleted
+              ? primaryColor.withValues(alpha: 0.3)
+              : const Color(0xFFE7E2D8));
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
@@ -271,8 +290,8 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
         boxShadow: [
           BoxShadow(
             color: isDark
-                ? primaryColor.withOpacity(0.03)
-                : Colors.black.withOpacity(0.05),
+                ? primaryColor.withValues(alpha: 0.03)
+                : Colors.black.withValues(alpha: 0.05),
             blurRadius: 30,
             offset: const Offset(0, 15),
           ),
@@ -284,9 +303,9 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: primaryColor.withOpacity(isDark ? 0.1 : 0.05),
+              color: primaryColor.withValues(alpha: isDark ? 0.1 : 0.05),
               shape: BoxShape.circle,
-              border: Border.all(color: primaryColor.withOpacity(0.2)),
+              border: Border.all(color: primaryColor.withValues(alpha: 0.2)),
             ),
             child: Icon(Icons.auto_awesome, color: primaryColor, size: 48),
           ),
@@ -321,27 +340,33 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
                 color: isCompleted ? Colors.transparent : primaryColor,
                 borderRadius: BorderRadius.circular(24),
                 border: isCompleted ? Border.all(color: primaryColor) : null,
-                boxShadow: isCompleted ? [] : [
-                  BoxShadow(
-                    color: primaryColor.withOpacity(0.4),
-                    blurRadius: 15,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
+                boxShadow: isCompleted
+                    ? []
+                    : [
+                        BoxShadow(
+                          color: primaryColor.withValues(alpha: 0.4),
+                          blurRadius: 15,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
               ),
               alignment: Alignment.center,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (isCompleted) ...[
-                    Icon(Icons.check_circle_rounded, color: primaryColor, size: 20),
+                    Icon(
+                      Icons.check_circle_rounded,
+                      color: primaryColor,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                   ],
                   Text(
                     isCompleted ? "COMPLETED" : "Reflect Now",
                     style: GoogleFonts.poppins(
-                      color: isCompleted 
-                          ? primaryColor 
+                      color: isCompleted
+                          ? primaryColor
                           : (isDark ? const Color(0xFF071011) : Colors.white),
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -368,11 +393,18 @@ class _QuestCardsScreenState extends State<QuestCardsScreen> {
           width: isCurrent ? 24 : 8,
           height: 6,
           decoration: BoxDecoration(
-            color: isCurrent ? primaryColor : Colors.grey.withOpacity(0.3),
+            color: isCurrent
+                ? primaryColor
+                : Colors.grey.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(3),
-            boxShadow: isCurrent ? [
-              BoxShadow(color: primaryColor.withOpacity(0.5), blurRadius: 8),
-            ] : [],
+            boxShadow: isCurrent
+                ? [
+                    BoxShadow(
+                      color: primaryColor.withValues(alpha: 0.5),
+                      blurRadius: 8,
+                    ),
+                  ]
+                : [],
           ),
         );
       }),

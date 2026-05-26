@@ -57,7 +57,9 @@ class _TibetanBowlScreenState extends State<TibetanBowlScreen>
         _volume += 0.5;
       }
     });
-    String msg = _volume == 0.0 ? "Muted" : "Volume: ${(_volume * 100).toInt()}%";
+    String msg = _volume == 0.0
+        ? "Muted"
+        : "Volume: ${(_volume * 100).toInt()}%";
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -111,7 +113,7 @@ class _TibetanBowlScreenState extends State<TibetanBowlScreen>
 
     final Color cardBg = isDark
         ? const Color(0xFF0E1718)
-        : Colors.white.withOpacity(0.92);
+        : Colors.white.withValues(alpha: 0.92);
 
     final Color borderColor = isDark
         ? const Color(0xFF1A2B2B)
@@ -181,7 +183,7 @@ class _TibetanBowlScreenState extends State<TibetanBowlScreen>
 
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
 
                     blurRadius: 10,
                   ),
@@ -204,8 +206,6 @@ class _TibetanBowlScreenState extends State<TibetanBowlScreen>
               fontWeight: FontWeight.bold,
             ),
           ),
-
-         
         ],
       ),
     );
@@ -245,11 +245,15 @@ class _TibetanBowlScreenState extends State<TibetanBowlScreen>
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
 
-                    color: primaryGreen.withOpacity(_isPlaying ? 0.10 : 0.04),
+                    color: primaryGreen.withValues(
+                      alpha: _isPlaying ? 0.10 : 0.04,
+                    ),
 
                     boxShadow: [
                       BoxShadow(
-                        color: primaryGreen.withOpacity(_isPlaying ? 0.30 : 0),
+                        color: primaryGreen.withValues(
+                          alpha: _isPlaying ? 0.30 : 0,
+                        ),
 
                         blurRadius: 100,
 
@@ -353,7 +357,7 @@ class _TibetanBowlScreenState extends State<TibetanBowlScreen>
 
               boxShadow: [
                 BoxShadow(
-                  color: primaryGreen.withOpacity(0.35),
+                  color: primaryGreen.withValues(alpha: 0.35),
 
                   blurRadius: 28,
 
@@ -406,7 +410,10 @@ class _TibetanBowlScreenState extends State<TibetanBowlScreen>
           shape: BoxShape.circle,
           border: Border.all(color: borderColor),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 12),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 12,
+            ),
           ],
         ),
         child: Icon(icon, color: textDark, size: 24),

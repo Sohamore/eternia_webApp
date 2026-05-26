@@ -17,6 +17,7 @@ import 'sign_up_screen.dart';
 
 class OTPVerificationScreen extends StatefulWidget {
   final String email;
+
   /// 'signup' or 'reset'
   final String mode;
   final String? username;
@@ -50,7 +51,9 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   Widget build(BuildContext context) {
     final provider = Provider.of<ThemeProvider>(context);
     final isDark = provider.isDark;
-    final primaryColor = isDark ? SanctuaryTheme.darkPrimary : SanctuaryTheme.lightPrimary;
+    final primaryColor = isDark
+        ? SanctuaryTheme.darkPrimary
+        : SanctuaryTheme.lightPrimary;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -85,14 +88,13 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                             //   shape: BoxShape.circle,
 
                             //   color: isDark
-                            //       ? Colors.white.withOpacity(0.05)
+                            //       ? Colors.white.withValues(alpha:0.05)
                             //       : Colors.white,
 
                             //   border: Border.all(
                             //     color: isDark ? Colors.white10 : const Color(0xFFE7E2D8),
                             //   ),
                             // ),
-
                             child: Icon(
                               Icons.arrow_back,
 
@@ -104,7 +106,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                         ),
 
                         //const Spacer(),
-
                         Text(
                           "Eternia",
 
@@ -112,8 +113,9 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                             fontSize: 28,
                             fontWeight: FontWeight.w600,
 
-                            color: isDark ?  const Color(0xFF67F5D4)
-        : const Color(0xFF53B29A),
+                            color: isDark
+                                ? const Color(0xFF67F5D4)
+                                : const Color(0xFF53B29A),
                           ),
                         ),
 
@@ -140,7 +142,9 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                             gradient: RadialGradient(
                               colors: isDark
                                   ? [
-                                      const Color(0xFF00FFE0).withOpacity(0.18),
+                                      const Color(
+                                        0xFF00FFE0,
+                                      ).withValues(alpha: 0.18),
 
                                       Colors.transparent,
                                     ]
@@ -161,7 +165,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                             shape: BoxShape.circle,
 
                             border: Border.all(
-                              color: primaryColor.withOpacity(0.3),
+                              color: primaryColor.withValues(alpha: 0.3),
                             ),
                           ),
                         ),
@@ -210,7 +214,9 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                           fontSize: 13,
                           height: 1.7,
 
-                          color: isDark ? Colors.white60 : const Color(0xFF70737C),
+                          color: isDark
+                              ? Colors.white60
+                              : const Color(0xFF70737C),
                         ),
                       ),
                     ),
@@ -249,7 +255,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                               filled: true,
 
                               fillColor: isDark
-                                  ? Colors.white.withOpacity(0.03)
+                                  ? Colors.white.withValues(alpha: 0.03)
                                   : Colors.white,
 
                               contentPadding: const EdgeInsets.symmetric(
@@ -261,7 +267,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 
                                 borderSide: BorderSide(
                                   color: isDark
-                                      ? primaryColor.withOpacity(0.25)
+                                      ? primaryColor.withValues(alpha: 0.25)
                                       : const Color(0xFFD6DCC9),
                                 ),
                               ),
@@ -299,7 +305,9 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                           "Didn't receive a code? ",
 
                           style: TextStyle(
-                            color: isDark ? Colors.white54 : const Color(0xFF70737C),
+                            color: isDark
+                                ? Colors.white54
+                                : const Color(0xFF70737C),
                           ),
                         ),
 
@@ -323,56 +331,81 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                     Consumer<AuthProvider>(
                       builder: (context, auth, child) {
                         return GestureDetector(
-                          onTap: auth.isLoading ? null : () async {
-                            final otp = otpControllers.map((c) => c.text).join();
-                            if (otp.length < 4) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Enter complete OTP")),
-                              );
-                              return;
-                            }
+                          onTap: auth.isLoading
+                              ? null
+                              : () async {
+                                  final otp = otpControllers
+                                      .map((c) => c.text)
+                                      .join();
+                                  if (otp.length < 4) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Enter complete OTP"),
+                                      ),
+                                    );
+                                    return;
+                                  }
 
-                              if (widget.mode == 'signup') {
-                                // ── SIGNUP FLOW ──
-                                // Step 1: verify the OTP
-                                final otpOk = await auth.verifyOTP(widget.email, otp);
-                                if (!otpOk || !mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text(auth.error ?? "Invalid OTP")),
-                                  );
-                                  return;
-                                }
+                                  if (widget.mode == 'signup') {
+                                    // ── SIGNUP FLOW ──
+                                    // Step 1: verify the OTP
+                                    final otpOk = await auth.verifyOTP(
+                                      widget.email,
+                                      otp,
+                                    );
+                                    if (!otpOk || !mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            auth.error ?? "Invalid OTP",
+                                          ),
+                                        ),
+                                      );
+                                      return;
+                                    }
 
-                                // Step 2: Route to SignUpScreen
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => SignUpScreen(
-                                      institutionId: widget.institutionId,
-                                      email: widget.email,
-                                    ),
-                                  ),
-                                );
-                            } else {
-                              // ── PASSWORD RESET FLOW ──
-                              final success = await auth.verifyOTP(widget.email, otp);
-                              if (success && mounted) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => CreateNewPasswordScreen(
-                                      username: widget.email,
-                                      otp: otp,
-                                    ),
-                                  ),
-                                );
-                              } else if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text("Invalid OTP. Hint: 1234")),
-                                );
-                              }
-                            }
-                          },
+                                    // Step 2: Route to SignUpScreen
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => SignUpScreen(
+                                          institutionId: widget.institutionId,
+                                          email: widget.email,
+                                        ),
+                                      ),
+                                    );
+                                  } else {
+                                    // ── PASSWORD RESET FLOW ──
+                                    final success = await auth.verifyOTP(
+                                      widget.email,
+                                      otp,
+                                    );
+                                    if (success && mounted) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              CreateNewPasswordScreen(
+                                                username: widget.email,
+                                                otp: otp,
+                                              ),
+                                        ),
+                                      );
+                                    } else if (mounted) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            "Invalid OTP. Hint: 1234",
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
                           child: GlassButton(
                             text: auth.isLoading ? "Verifying..." : "Verify",
                             style: GoogleFonts.poppins(
@@ -449,7 +482,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                     //         BoxShadow(
                     //           color:
                     //               primaryColor
-                    //                   .withOpacity(
+                    //                   .withValues(alpha:
                     //                     0.35,
                     //                   ),
 

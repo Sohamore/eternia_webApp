@@ -81,12 +81,12 @@ class _BreathingExerciseScreenState extends State<BreathingExerciseScreen>
                     height: 300,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: theme.primary.withOpacity(
-                        0.05 + (_controller.value * 0.1),
+                      color: theme.primary.withValues(
+                        alpha: 0.05 + (_controller.value * 0.1),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: theme.primary.withOpacity(0.1),
+                          color: theme.primary.withValues(alpha: 0.1),
                           blurRadius: 100,
                           spreadRadius: 50,
                         ),
@@ -107,12 +107,12 @@ class _BreathingExerciseScreenState extends State<BreathingExerciseScreen>
                     height: 250,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: theme.primary.withOpacity(
-                        0.03 + ((1 - _controller.value) * 0.1),
+                      color: theme.primary.withValues(
+                        alpha: 0.03 + ((1 - _controller.value) * 0.1),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: theme.primary.withOpacity(0.1),
+                          color: theme.primary.withValues(alpha: 0.1),
                           blurRadius: 120,
                           spreadRadius: 40,
                         ),
@@ -144,13 +144,13 @@ class _BreathingExerciseScreenState extends State<BreathingExerciseScreen>
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: isDark
-                                ? Colors.white.withOpacity(0.05)
-                                : Colors.black.withOpacity(0.03),
+                                ? Colors.white.withValues(alpha: 0.05)
+                                : Colors.black.withValues(alpha: 0.03),
                             shape: BoxShape.circle,
                             border: Border.all(
                               color: isDark
-                                  ? Colors.white.withOpacity(0.1)
-                                  : Colors.black.withOpacity(0.05),
+                                  ? Colors.white.withValues(alpha: 0.1)
+                                  : Colors.black.withValues(alpha: 0.05),
                             ),
                           ),
                           child: Icon(
@@ -195,11 +195,11 @@ class _BreathingExerciseScreenState extends State<BreathingExerciseScreen>
                               width: 280,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: theme.primary.withOpacity(
-                                  _isActive ? 0.05 : 0.02,
+                                color: theme.primary.withValues(
+                                  alpha: _isActive ? 0.05 : 0.02,
                                 ),
                                 border: Border.all(
-                                  color: theme.primary.withOpacity(0.1),
+                                  color: theme.primary.withValues(alpha: 0.1),
                                   width: 1,
                                 ),
                               ),
@@ -215,18 +215,18 @@ class _BreathingExerciseScreenState extends State<BreathingExerciseScreen>
                                 shape: BoxShape.circle,
                                 gradient: RadialGradient(
                                   colors: [
-                                    theme.primary.withOpacity(0.4),
-                                    theme.primary.withOpacity(0.05),
+                                    theme.primary.withValues(alpha: 0.4),
+                                    theme.primary.withValues(alpha: 0.05),
                                   ],
                                 ),
                                 border: Border.all(
-                                  color: theme.primary.withOpacity(0.5),
+                                  color: theme.primary.withValues(alpha: 0.5),
                                   width: 2,
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: theme.primary.withOpacity(
-                                      _isActive ? 0.3 : 0.1,
+                                    color: theme.primary.withValues(
+                                      alpha: _isActive ? 0.3 : 0.1,
                                     ),
                                     blurRadius: 80,
                                     spreadRadius: 10,
@@ -241,12 +241,12 @@ class _BreathingExerciseScreenState extends State<BreathingExerciseScreen>
                             width: 110,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: theme.primary.withOpacity(
-                                isDark ? 0.2 : 0.15,
+                              color: theme.primary.withValues(
+                                alpha: isDark ? 0.2 : 0.15,
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: theme.primary.withOpacity(0.2),
+                                  color: theme.primary.withValues(alpha: 0.2),
                                   blurRadius: 20,
                                 ),
                               ],
@@ -304,8 +304,8 @@ class _BreathingExerciseScreenState extends State<BreathingExerciseScreen>
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: isDark
-                          ? Colors.white.withOpacity(0.03)
-                          : Colors.black.withOpacity(0.02),
+                          ? Colors.white.withValues(alpha: 0.03)
+                          : Colors.black.withValues(alpha: 0.02),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(color: theme.border),
                     ),
@@ -327,7 +327,9 @@ class _BreathingExerciseScreenState extends State<BreathingExerciseScreen>
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: theme.primary.withOpacity(0.3),
+                                      color: theme.primary.withValues(
+                                        alpha: 0.3,
+                                      ),
                                       blurRadius: 12,
                                       offset: const Offset(0, 4),
                                     ),
@@ -337,11 +339,16 @@ class _BreathingExerciseScreenState extends State<BreathingExerciseScreen>
                             ),
                             // TEXT BUTTONS
                             Row(
-                              children: List.generate(_durations.length, (index) {
-                                final isSelected = _selectedDurationIndex == index;
+                              children: List.generate(_durations.length, (
+                                index,
+                              ) {
+                                final isSelected =
+                                    _selectedDurationIndex == index;
                                 return Expanded(
                                   child: GestureDetector(
-                                    onTap: () => setState(() => _selectedDurationIndex = index),
+                                    onTap: () => setState(
+                                      () => _selectedDurationIndex = index,
+                                    ),
                                     behavior: HitTestBehavior.opaque,
                                     child: Container(
                                       height: 44,
@@ -350,7 +357,9 @@ class _BreathingExerciseScreenState extends State<BreathingExerciseScreen>
                                         _durations[index],
                                         style: GoogleFonts.poppins(
                                           color: isSelected
-                                              ? (isDark ? Colors.black : Colors.white)
+                                              ? (isDark
+                                                    ? Colors.black
+                                                    : Colors.white)
                                               : theme.textTertiary,
                                           fontSize: 13,
                                           fontWeight: isSelected
@@ -387,7 +396,7 @@ class _BreathingExerciseScreenState extends State<BreathingExerciseScreen>
         boxShadow: selected
             ? [
                 BoxShadow(
-                  color: theme.primary.withOpacity(0.3),
+                  color: theme.primary.withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),

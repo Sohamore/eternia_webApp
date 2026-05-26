@@ -35,10 +35,18 @@ class EterniaButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: outlined ? Colors.transparent : theme.buttonBg,
           borderRadius: BorderRadius.circular(16),
-          border: outlined ? Border.all(color: theme.primary.withOpacity(0.4)) : null,
+          border: outlined
+              ? Border.all(color: theme.primary.withValues(alpha: 0.4))
+              : null,
           boxShadow: outlined
               ? []
-              : [BoxShadow(color: theme.primary.withOpacity(0.2), blurRadius: 16, offset: const Offset(0, 6))],
+              : [
+                  BoxShadow(
+                    color: theme.primary.withValues(alpha: 0.2),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
         ),
         alignment: Alignment.center,
         child: Row(
@@ -56,7 +64,11 @@ class EterniaButton extends StatelessWidget {
             ),
             if (icon != null) ...[
               const SizedBox(width: 8),
-              Icon(icon, color: outlined ? theme.primary : theme.buttonText, size: 18),
+              Icon(
+                icon,
+                color: outlined ? theme.primary : theme.buttonText,
+                size: 18,
+              ),
             ],
           ],
         ),

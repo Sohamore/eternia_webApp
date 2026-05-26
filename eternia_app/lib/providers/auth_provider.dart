@@ -10,6 +10,7 @@ class AuthProvider extends ChangeNotifier {
   final TokenStorage _tokenStorage;
 
   bool _isInitializing = true;
+
   bool _isLoading = false;
   String? _error;
   String? _token;

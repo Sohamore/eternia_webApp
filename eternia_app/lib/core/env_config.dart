@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 
 class EnvConfig {
-  static const String _defaultBaseUrl =
-      'http://192.168.0.111:5000/api';
+  static String get _defaultBaseUrl {
+    // Using local network IP for physical device testing
+    return 'http://192.168.0.103:3001/api';
+  }
 
   static String get baseUrl {
     const override = String.fromEnvironment('BASE_URL', defaultValue: '');

@@ -53,10 +53,10 @@ class _ExpertGuidanceScreenState extends State<ExpertGuidanceScreen> {
     final Color textSecondary = isDark ? Colors.white60 : Colors.black54;
     final Color textTertiary = isDark ? Colors.white38 : Colors.black38;
     final Color cardColor = isDark
-        ? Colors.white.withOpacity(0.04)
-        : Colors.white.withOpacity(0.8);
+        ? Colors.white.withValues(alpha: 0.04)
+        : Colors.white.withValues(alpha: 0.8);
     final Color borderColor = isDark
-        ? Colors.white.withOpacity(0.06)
+        ? Colors.white.withValues(alpha: 0.06)
         : const Color(0xFFE7E2D8);
 
     return Scaffold(
@@ -73,7 +73,7 @@ class _ExpertGuidanceScreenState extends State<ExpertGuidanceScreen> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [primary.withOpacity(0.08), Colors.transparent],
+                  colors: [primary.withValues(alpha: 0.08), Colors.transparent],
                 ),
               ),
             ),
@@ -283,7 +283,7 @@ class _ExpertGuidanceScreenState extends State<ExpertGuidanceScreen> {
                                 border: Border.all(color: borderColor),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: primary.withOpacity(0.03),
+                                    color: primary.withValues(alpha: 0.03),
                                     blurRadius: 20,
                                   ),
                                 ],
@@ -332,8 +332,8 @@ class _ExpertGuidanceScreenState extends State<ExpertGuidanceScreen> {
                                             borderRadius: BorderRadius.circular(
                                               12,
                                             ),
-                                            color: primary.withOpacity(
-                                              isDark ? 0.8 : 1.0,
+                                            color: primary.withValues(
+                                              alpha: isDark ? 0.8 : 1.0,
                                             ),
                                           ),
                                           child: Row(
@@ -437,7 +437,9 @@ class _ExpertGuidanceScreenState extends State<ExpertGuidanceScreen> {
             "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&q=80";
 
         final expertId = e['id'] as String?;
-        debugPrint('[ExpertGuidanceScreen] Found expert: $name, ID: $expertId, specialty: $specialty');
+        debugPrint(
+          '[ExpertGuidanceScreen] Found expert: $name, ID: $expertId, specialty: $specialty',
+        );
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: _buildExpertCard(
@@ -686,7 +688,7 @@ class _ExpertGuidanceScreenState extends State<ExpertGuidanceScreen> {
                               Text(
                                 "Specialist: $specialty",
                                 style: GoogleFonts.poppins(
-                                  color: primary.withOpacity(0.8),
+                                  color: primary.withValues(alpha: 0.8),
                                   fontSize: 11,
                                 ),
                               ),
@@ -700,8 +702,8 @@ class _ExpertGuidanceScreenState extends State<ExpertGuidanceScreen> {
                           ),
                           decoration: BoxDecoration(
                             color: isDark
-                                ? Colors.black.withOpacity(0.4)
-                                : Colors.grey.withOpacity(0.1),
+                                ? Colors.black.withValues(alpha: 0.4)
+                                : Colors.grey.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -826,8 +828,8 @@ class _ExpertGuidanceScreenState extends State<ExpertGuidanceScreen> {
 
                               border: Border.all(
                                 color: isDark
-                                    ? primary.withOpacity(0.6)
-                                    : Colors.white.withOpacity(0.12),
+                                    ? primary.withValues(alpha: 0.6)
+                                    : Colors.white.withValues(alpha: 0.12),
                               ),
 
                               boxShadow: isDark
@@ -836,7 +838,7 @@ class _ExpertGuidanceScreenState extends State<ExpertGuidanceScreen> {
                                       BoxShadow(
                                         color: const Color(
                                           0xFF12312B,
-                                        ).withOpacity(0.22),
+                                        ).withValues(alpha: 0.22),
 
                                         blurRadius: 18,
 

@@ -22,9 +22,13 @@ class GroupSessionScreen extends StatelessWidget {
         : const Color(0xFF53B29A);
     final Color bg = isDark ? const Color(0xFF071011) : const Color(0xFFF6F3ED);
     final Color cardColor = isDark ? const Color(0xFF111C1E) : Colors.white;
-    final Color borderColor = isDark ? const Color(0xFF1E3035) : const Color(0xFFE7E2D8);
+    final Color borderColor = isDark
+        ? const Color(0xFF1E3035)
+        : const Color(0xFFE7E2D8);
     final Color textPrimary = isDark ? Colors.white : const Color(0xFF1B2722);
-    final Color textSecondary = isDark ? Colors.white38 : const Color(0xFF70737C);
+    final Color textSecondary = isDark
+        ? Colors.white38
+        : const Color(0xFF70737C);
 
     return Scaffold(
       backgroundColor: bg,
@@ -38,7 +42,11 @@ class GroupSessionScreen extends StatelessWidget {
               const SizedBox(height: 20),
               GestureDetector(
                 onTap: () => Navigator.pop(context),
-                child: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white54 : const Color(0xFF70737C), size: 20),
+                child: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: isDark ? Colors.white54 : const Color(0xFF70737C),
+                  size: 20,
+                ),
               ),
               const SizedBox(height: 20),
               Text(
@@ -64,10 +72,10 @@ class GroupSessionScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: cardColor,
                   borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: primary.withOpacity(0.2)),
+                  border: Border.all(color: primary.withValues(alpha: 0.2)),
                   boxShadow: [
                     BoxShadow(
-                      color: primary.withOpacity(0.06),
+                      color: primary.withValues(alpha: 0.06),
                       blurRadius: 30,
                       spreadRadius: 0,
                     ),
@@ -79,8 +87,12 @@ class GroupSessionScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Container(
-                          width: 8, height: 8,
-                          decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.redAccent),
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.redAccent,
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -106,20 +118,35 @@ class GroupSessionScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       "Live with Dr. Aria",
-                      style: GoogleFonts.poppins(color: primary, fontSize: 12, fontWeight: FontWeight.w600),
+                      style: GoogleFonts.poppins(
+                        color: primary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       "42 Participants",
-                      style: GoogleFonts.poppins(color: textSecondary, fontSize: 10),
+                      style: GoogleFonts.poppins(
+                        color: textSecondary,
+                        fontSize: 10,
+                      ),
                     ),
                     const SizedBox(height: 28),
                     GestureDetector(
                       onTap: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => const LiveSessionScreen()));
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LiveSessionScreen(),
+                          ),
+                        );
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 16,
+                        ),
                         decoration: BoxDecoration(
                           color: primary,
                           borderRadius: BorderRadius.circular(18),
@@ -143,16 +170,36 @@ class GroupSessionScreen extends StatelessWidget {
               Text(
                 "UPCOMING SESSIONS",
                 style: GoogleFonts.poppins(
-                  color: primary.withOpacity(0.5),
+                  color: primary.withValues(alpha: 0.5),
                   fontSize: 10,
                   letterSpacing: 2,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 16),
-              _buildSessionItem(context, "Deep Sleep Guide", "Today, 9 PM", isDark: isDark, primary: primary, cardColor: cardColor, borderColor: borderColor, textPrimary: textPrimary, textSecondary: textSecondary),
+              _buildSessionItem(
+                context,
+                "Deep Sleep Guide",
+                "Today, 9 PM",
+                isDark: isDark,
+                primary: primary,
+                cardColor: cardColor,
+                borderColor: borderColor,
+                textPrimary: textPrimary,
+                textSecondary: textSecondary,
+              ),
               const SizedBox(height: 12),
-              _buildSessionItem(context, "Exam Stress Relief", "Tomorrow, 4 PM", isDark: isDark, primary: primary, cardColor: cardColor, borderColor: borderColor, textPrimary: textPrimary, textSecondary: textSecondary),
+              _buildSessionItem(
+                context,
+                "Exam Stress Relief",
+                "Tomorrow, 4 PM",
+                isDark: isDark,
+                primary: primary,
+                cardColor: cardColor,
+                borderColor: borderColor,
+                textPrimary: textPrimary,
+                textSecondary: textSecondary,
+              ),
               const SizedBox(height: 120),
             ],
           ),
@@ -185,18 +232,35 @@ class GroupSessionScreen extends StatelessWidget {
             height: 46,
             width: 46,
             decoration: BoxDecoration(
-              color: primary.withOpacity(0.08),
+              color: primary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: Icon(Icons.calendar_today_outlined, color: primary, size: 18),
+            child: Icon(
+              Icons.calendar_today_outlined,
+              color: primary,
+              size: 18,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14, color: textPrimary)),
-                Text(time, style: GoogleFonts.poppins(color: textSecondary, fontSize: 10)),
+                Text(
+                  title,
+                  style: GoogleFonts.poppins(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: textPrimary,
+                  ),
+                ),
+                Text(
+                  time,
+                  style: GoogleFonts.poppins(
+                    color: textSecondary,
+                    fontSize: 10,
+                  ),
+                ),
               ],
             ),
           ),
@@ -204,18 +268,26 @@ class GroupSessionScreen extends StatelessWidget {
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text("Notification On", style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                  content: Text(
+                    "Notification On",
+                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                  ),
                   backgroundColor: primary,
                   behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               );
             },
-            child: Icon(Icons.notifications_none_outlined, color: isDark ? Colors.white24 : Colors.black26, size: 20),
+            child: Icon(
+              Icons.notifications_none_outlined,
+              color: isDark ? Colors.white24 : Colors.black26,
+              size: 20,
+            ),
           ),
         ],
       ),
     );
   }
 }
-

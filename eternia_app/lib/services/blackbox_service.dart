@@ -18,11 +18,14 @@ class BlackBoxService {
     String contentType = 'text',
     bool isPrivate = false,
   }) async {
-    final response = await _api.post('/blackbox/entries', data: {
-      'content': content,
-      'content_type': contentType,
-      'is_private': isPrivate,
-    });
+    final response = await _api.post(
+      '/blackbox/entries',
+      data: {
+        'content': content,
+        'content_type': contentType,
+        'is_private': isPrivate,
+      },
+    );
     return Map<String, dynamic>.from(response.data as Map);
   }
 
@@ -33,10 +36,10 @@ class BlackBoxService {
     String? cursor,
     int limit = 30,
   }) async {
-    final response = await _api.get('/blackbox/entries', queryParameters: {
-      'limit': limit,
-      if (cursor != null) 'cursor': cursor,
-    });
+    final response = await _api.get(
+      '/blackbox/entries',
+      queryParameters: {'limit': limit, if (cursor != null) 'cursor': cursor},
+    );
     return Map<String, dynamic>.from(response.data as Map);
   }
 
@@ -85,6 +88,37 @@ class BlackBoxService {
   /// Returns: updated session object
   Future<Map<String, dynamic>> joinSession(String id) async {
     final response = await _api.patch('/blackbox/sessions/$id/join');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  /// GET /blackbox/sessions/:id
+  /// Retrieves a specific session's current status and details.
+  Future<Map<String, dynamic>> getSessionById(String id) async {
+    final response = await _api.get('/blackbox/sessions/$id');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  /// GET /blackbox/therapist/queue
+  /// Retrieves all queued student sessions awaiting an expert.
+  Future<Map<String, dynamic>> getTherapistQueue() async {
+    final response = await _api.get('/blackbox/therapist/queue');
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  /// PATCH /blackbox/therapist/sessions/:id/accept
+  /// Accepts a queued session by providing a generated VideoSDK room ID.
+  Future<Map<String, dynamic>> acceptSession(String id, String roomId) async {
+    final response = await _api.patch(
+      '/blackbox/therapist/sessions/$id/accept',
+      data: {'room_id': roomId},
+    );
+    return Map<String, dynamic>.from(response.data as Map);
+  }
+
+  /// PATCH /blackbox/therapist/sessions/:id/join
+  /// Marks the therapist as successfully joined the VideoSDK session.
+  Future<Map<String, dynamic>> therapistJoinSession(String id) async {
+    final response = await _api.patch('/blackbox/therapist/sessions/$id/join');
     return Map<String, dynamic>.from(response.data as Map);
   }
 }

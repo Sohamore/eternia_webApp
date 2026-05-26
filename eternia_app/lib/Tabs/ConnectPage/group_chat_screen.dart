@@ -62,7 +62,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
         ? Colors.white38
         : const Color(0xFF70737C);
     final Color borderColor = isDark
-        ? Colors.white.withOpacity(0.07)
+        ? Colors.white.withValues(alpha: 0.07)
         : const Color(0xFFE7E2D8);
 
     return Scaffold(
@@ -205,7 +205,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
                       color: isDark
-                          ? Colors.white.withOpacity(0.05)
+                          ? Colors.white.withValues(alpha: 0.05)
                           : Colors.white,
                       borderRadius: BorderRadius.circular(30),
                       border: Border.all(color: borderColor),
@@ -277,8 +277,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
               color: isMe
                   ? primary
                   : (isDark
-                        ? Colors.white.withOpacity(0.08)
-                        : Colors.grey.withOpacity(0.1)),
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.grey.withValues(alpha: 0.1)),
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(16),
                 topRight: const Radius.circular(16),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-
   // =========================================================
   // LIGHT THEME COLORS
   // =========================================================
@@ -55,9 +54,7 @@ class AppTheme {
   }
 
   static Color card(bool isDark) {
-    return isDark
-        ? darkCard
-        : Colors.white.withOpacity(0.92);
+    return isDark ? darkCard : Colors.white.withValues(alpha: 0.92);
   }
 
   static Color text(bool isDark) {
@@ -78,9 +75,7 @@ class AppTheme {
 
   static List<Widget> buildBackground(bool isDark) {
     return [
-
       // MAIN BACKGROUND
-
       Positioned.fill(
         child: Container(
           decoration: BoxDecoration(
@@ -88,10 +83,7 @@ class AppTheme {
                 ? RadialGradient(
                     center: const Alignment(-0.9, -1),
                     radius: 1.7,
-                    colors: [
-                      darkPrimary.withOpacity(0.18),
-                      darkBg,
-                    ],
+                    colors: [darkPrimary.withValues(alpha: 0.18), darkBg],
                   )
                 : const LinearGradient(
                     begin: Alignment.topCenter,
@@ -107,22 +99,20 @@ class AppTheme {
       ),
 
       // TOP GLOW
-
       _glow(
         Alignment.topRight,
         isDark
-            ? darkPrimary.withOpacity(0.10)
-            : lightPrimary.withOpacity(0.05),
+            ? darkPrimary.withValues(alpha: 0.10)
+            : lightPrimary.withValues(alpha: 0.05),
         350,
       ),
 
       // BOTTOM GLOW
-
       _glow(
         Alignment.bottomLeft,
         isDark
-            ? darkPrimary.withOpacity(0.06)
-            : lightAccent.withOpacity(0.04),
+            ? darkPrimary.withValues(alpha: 0.06)
+            : lightAccent.withValues(alpha: 0.04),
         400,
       ),
     ];
@@ -132,11 +122,7 @@ class AppTheme {
   // GLOW WIDGET
   // =========================================================
 
-  static Widget _glow(
-    Alignment alignment,
-    Color color,
-    double size,
-  ) {
+  static Widget _glow(Alignment alignment, Color color, double size) {
     return Align(
       alignment: alignment,
       child: Container(
@@ -144,12 +130,7 @@ class AppTheme {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(
-            colors: [
-              color,
-              Colors.transparent,
-            ],
-          ),
+          gradient: RadialGradient(colors: [color, Colors.transparent]),
         ),
       ),
     );

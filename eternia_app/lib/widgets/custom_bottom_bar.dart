@@ -62,18 +62,20 @@ class CustomBottomBar extends StatelessWidget {
 
                 decoration: BoxDecoration(
                   color: theme.isDark
-                      ? Colors.black.withOpacity(0.45)
-                      : Colors.white.withOpacity(0.88),
+                      ? Colors.black.withValues(alpha: 0.45)
+                      : Colors.white.withValues(alpha: 0.88),
 
                   borderRadius: BorderRadius.circular(32),
 
-                  border: Border.all(color: theme.primary.withOpacity(0.18)),
+                  border: Border.all(
+                    color: theme.primary.withValues(alpha: 0.18),
+                  ),
 
                   boxShadow: theme.isDark
                       ? []
                       : [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.06),
+                            color: Colors.black.withValues(alpha: 0.06),
 
                             blurRadius: 20,
 
@@ -188,13 +190,16 @@ class CustomBottomBar extends StatelessWidget {
 
           decoration: BoxDecoration(
             color: isSelected
-                ? theme.primary.withOpacity(0.12)
+                ? theme.primary.withValues(alpha: 0.12)
                 : Colors.transparent,
 
             borderRadius: BorderRadius.circular(20),
 
             border: isSelected
-                ? Border.all(color: theme.primary.withOpacity(0.25), width: 1)
+                ? Border.all(
+                    color: theme.primary.withValues(alpha: 0.25),
+                    width: 1,
+                  )
                 : null,
           ),
 

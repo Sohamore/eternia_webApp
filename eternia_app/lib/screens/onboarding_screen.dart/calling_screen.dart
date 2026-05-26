@@ -45,11 +45,12 @@ class _CallingScreenState extends State<CallingScreen> {
     if (!widget.isAudioOnly) {
       permissions.add(Permission.camera);
     }
-    
+
     Map<Permission, PermissionStatus> statuses = await permissions.request();
 
     if (statuses[Permission.microphone] != PermissionStatus.granted ||
-        (!widget.isAudioOnly && statuses[Permission.camera] != PermissionStatus.granted)) {
+        (!widget.isAudioOnly &&
+            statuses[Permission.camera] != PermissionStatus.granted)) {
       setState(() {
         _isConnecting = false;
         _errorMessage = widget.isAudioOnly
@@ -114,7 +115,8 @@ class _CallingScreenState extends State<CallingScreen> {
     _room?.on(Events.error, (error) {
       if (mounted) {
         setState(() {
-          _errorMessage = error['message'] ?? "An unexpected video call error occurred.";
+          _errorMessage =
+              error['message'] ?? "An unexpected video call error occurred.";
         });
       }
     });
@@ -174,34 +176,53 @@ class _CallingScreenState extends State<CallingScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.redAccent.withOpacity(0.1),
+                    color: Colors.redAccent.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                  child: const Icon(
+                    Icons.error_outline,
+                    color: Colors.redAccent,
+                    size: 48,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 Text(
                   "Connection Failed",
-                  style: GoogleFonts.cormorantGaramond(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.cormorantGaramond(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
                   _errorMessage!,
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(color: Colors.white70, fontSize: 13, height: 1.5),
+                  style: GoogleFonts.poppins(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
                 ),
                 const SizedBox(height: 32),
                 GestureDetector(
                   onTap: () => Navigator.of(context).pop(),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 28,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: primary,
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Text(
                       "Go Back",
-                      style: GoogleFonts.poppins(color: const Color(0xFF040B0D), fontWeight: FontWeight.bold, fontSize: 14),
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF040B0D),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ),
@@ -227,7 +248,7 @@ class _CallingScreenState extends State<CallingScreen> {
                 height: 300,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: primary.withOpacity(0.08),
+                  color: primary.withValues(alpha: 0.08),
                 ),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
@@ -256,17 +277,23 @@ class _CallingScreenState extends State<CallingScreen> {
                         width: 90,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: primary.withOpacity(0.05 + (0.05 * (1 - value))),
+                          color: primary.withValues(
+                            alpha: 0.05 + (0.05 * (1 - value)),
+                          ),
                           border: Border.all(
-                            color: primary.withOpacity(0.3 * (1 - value)),
+                            color: primary.withValues(alpha: 0.3 * (1 - value)),
                             width: 1 + (2 * value),
                           ),
                         ),
                         child: Center(
                           child: CircleAvatar(
                             radius: 32,
-                            backgroundColor: primary.withOpacity(0.15),
-                            child: Icon(widget.isAudioOnly ? Icons.phone : Icons.videocam, color: primary, size: 28),
+                            backgroundColor: primary.withValues(alpha: 0.15),
+                            child: Icon(
+                              widget.isAudioOnly ? Icons.phone : Icons.videocam,
+                              color: primary,
+                              size: 28,
+                            ),
                           ),
                         ),
                       );
@@ -284,7 +311,9 @@ class _CallingScreenState extends State<CallingScreen> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    widget.isAudioOnly ? "Securing high-quality audio call link" : "Securing high-quality video call link",
+                    widget.isAudioOnly
+                        ? "Securing high-quality audio call link"
+                        : "Securing high-quality video call link",
                     style: GoogleFonts.poppins(
                       color: Colors.white38,
                       fontSize: 12,
@@ -331,10 +360,10 @@ class _CallingScreenState extends State<CallingScreen> {
                   border: Border.all(color: Colors.white24, width: 1.5),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.4),
+                      color: Colors.black.withValues(alpha: 0.4),
                       blurRadius: 15,
                       offset: const Offset(0, 5),
-                    )
+                    ),
                   ],
                 ),
                 child: ParticipantTile(
@@ -353,8 +382,11 @@ class _CallingScreenState extends State<CallingScreen> {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  color: Colors.white.withOpacity(0.08),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  color: Colors.white.withValues(alpha: 0.08),
                   child: Row(
                     children: [
                       Container(
@@ -364,14 +396,22 @@ class _CallingScreenState extends State<CallingScreen> {
                           color: primary,
                           shape: BoxShape.circle,
                           boxShadow: [
-                            BoxShadow(color: primary.withOpacity(0.6), blurRadius: 8, spreadRadius: 1),
+                            BoxShadow(
+                              color: primary.withValues(alpha: 0.6),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
                           ],
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
                         "Live Session",
-                        style: GoogleFonts.poppins(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ],
                   ),
@@ -390,8 +430,11 @@ class _CallingScreenState extends State<CallingScreen> {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
-                  color: Colors.white.withOpacity(0.06),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 20,
+                    horizontal: 10,
+                  ),
+                  color: Colors.white.withValues(alpha: 0.06),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -412,19 +455,25 @@ class _CallingScreenState extends State<CallingScreen> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.redAccent.withOpacity(0.4),
+                                color: Colors.redAccent.withValues(alpha: 0.4),
                                 blurRadius: 20,
                                 spreadRadius: 4,
-                              )
+                              ),
                             ],
                           ),
-                          child: const Icon(Icons.call_end, color: Colors.white, size: 30),
+                          child: const Icon(
+                            Icons.call_end,
+                            color: Colors.white,
+                            size: 30,
+                          ),
                         ),
                       ),
                       // Cam toggle button
                       if (!widget.isAudioOnly)
                         _buildControlButton(
-                          icon: _camEnabled ? Icons.videocam : Icons.videocam_off,
+                          icon: _camEnabled
+                              ? Icons.videocam
+                              : Icons.videocam_off,
                           isActive: _camEnabled,
                           onTap: _toggleCam,
                         )
@@ -467,16 +516,18 @@ class _CallingScreenState extends State<CallingScreen> {
                     width: 140,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: primary.withOpacity(0.02 + (0.03 * (1 - value))),
+                      color: primary.withValues(
+                        alpha: 0.02 + (0.03 * (1 - value)),
+                      ),
                       border: Border.all(
-                        color: primary.withOpacity(0.2 * (1 - value)),
+                        color: primary.withValues(alpha: 0.2 * (1 - value)),
                         width: 1 + (1.5 * value),
                       ),
                     ),
                     child: Center(
                       child: CircleAvatar(
                         radius: 52,
-                        backgroundColor: Colors.white.withOpacity(0.02),
+                        backgroundColor: Colors.white.withValues(alpha: 0.02),
                         backgroundImage: const NetworkImage(
                           "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&q=80",
                         ),
@@ -525,7 +576,9 @@ class _CallingScreenState extends State<CallingScreen> {
         height: 52,
         width: 52,
         decoration: BoxDecoration(
-          color: isActive ? Colors.white.withOpacity(0.12) : Colors.white24,
+          color: isActive
+              ? Colors.white.withValues(alpha: 0.12)
+              : Colors.white24,
           shape: BoxShape.circle,
           border: Border.all(color: Colors.white10),
         ),
@@ -626,7 +679,7 @@ class _ParticipantTileState extends State<ParticipantTile> {
           children: [
             CircleAvatar(
               radius: widget.isLocal ? 22 : 44,
-              backgroundColor: Colors.white.withOpacity(0.05),
+              backgroundColor: Colors.white.withValues(alpha: 0.05),
               child: Text(
                 widget.participant.displayName.isNotEmpty
                     ? widget.participant.displayName[0].toUpperCase()
@@ -640,7 +693,9 @@ class _ParticipantTileState extends State<ParticipantTile> {
             ),
             const SizedBox(height: 10),
             Text(
-              widget.isLocal ? "Camera Off" : "${widget.participant.displayName}",
+              widget.isLocal
+                  ? "Camera Off"
+                  : "${widget.participant.displayName}",
               style: GoogleFonts.poppins(
                 color: Colors.white38,
                 fontSize: widget.isLocal ? 10 : 13,

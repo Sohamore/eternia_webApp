@@ -120,7 +120,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           width: 72,
                           height: 1.4,
 
-                          color: primaryColor.withOpacity(0.8),
+                          color: primaryColor.withValues(alpha: 0.8),
                         ),
                       ],
                     ),
@@ -143,15 +143,19 @@ class _SignInScreenState extends State<SignInScreen> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(30),
 
-                          color: (isDark ? Colors.white.withOpacity(0.04) : Colors.white.withOpacity(0.92)),
+                          color: (isDark
+                              ? Colors.white.withValues(alpha: 0.04)
+                              : Colors.white.withValues(alpha: 0.92)),
 
                           border: Border.all(
-                            color: (isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE7E2D8)),
+                            color: (isDark
+                                ? Colors.white.withValues(alpha: 0.08)
+                                : const Color(0xFFE7E2D8)),
                           ),
 
                           boxShadow: [
                             BoxShadow(
-                              color: primaryColor.withOpacity(0.08),
+                              color: primaryColor.withValues(alpha: 0.08),
 
                               blurRadius: 28,
                               spreadRadius: 1,
@@ -196,7 +200,9 @@ class _SignInScreenState extends State<SignInScreen> {
                                         "Use your username or\nemail to access your\ndashboard",
 
                                         style: GoogleFonts.poppins(
-                                          color: isDark ? Colors.white70 : const Color(0xFF70737C),
+                                          color: isDark
+                                              ? Colors.white70
+                                              : const Color(0xFF70737C),
 
                                           fontSize: 15,
 
@@ -281,7 +287,10 @@ class _SignInScreenState extends State<SignInScreen> {
                                   onTap: () {
                                     Navigator.push(
                                       context,
-                                      MaterialPageRoute(builder: (_) => const ResetPasswordScreen()),
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            const ResetPasswordScreen(),
+                                      ),
                                     );
                                   },
                                   child: Text(
@@ -320,86 +329,126 @@ class _SignInScreenState extends State<SignInScreen> {
                             SizedBox(
                               width: double.infinity,
 
-                                child: Consumer<AuthProvider>(
-                                  builder: (context, auth, _) {
-                                    return GestureDetector(
-                                      onTap: auth.isLoading ? null : () async {
-                                        final username = emailController.text.trim();
-                                        final password = passwordController.text;
+                              child: Consumer<AuthProvider>(
+                                builder: (context, auth, _) {
+                                  return GestureDetector(
+                                    onTap: auth.isLoading
+                                        ? null
+                                        : () async {
+                                            final username = emailController
+                                                .text
+                                                .trim();
+                                            final password =
+                                                passwordController.text;
 
-                                        if (username.isEmpty || password.isEmpty) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text("Please enter username and password")),
-                                          );
-                                          return;
-                                        }
+                                            if (username.isEmpty ||
+                                                password.isEmpty) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    "Please enter username and password",
+                                                  ),
+                                                ),
+                                              );
+                                              return;
+                                            }
 
-                                        final success = await auth.login(username, password);
-                                        if (success) {
-                                          if (mounted) {
-                                            Navigator.pushAndRemoveUntil(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => MainNavigation(),
-                                              ),
-                                              (route) => false,
+                                            final success = await auth.login(
+                                              username,
+                                              password,
                                             );
-                                          }
-                                        } else {
-                                          if (mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(content: Text(auth.error ?? "Invalid username or password")),
-                                            );
-                                          }
-                                        }
-                                      },
-                                      child: Container(
-                                        height: 62,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(18),
-                                          gradient: const LinearGradient(
-                                            colors: [
-                                              Color(0xFF2CA999),
-                                              Color(0xFF8CF8D6),
-                                            ],
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: primaryColor.withOpacity(0.28),
-                                              blurRadius: 24,
-                                              offset: const Offset(0, 10),
-                                            ),
+                                            if (success) {
+                                              if (mounted) {
+                                                Navigator.pushAndRemoveUntil(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        MainNavigation(),
+                                                  ),
+                                                  (route) => false,
+                                                );
+                                              }
+                                            } else {
+                                              if (mounted) {
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  SnackBar(
+                                                    content: Text(
+                                                      auth.error ??
+                                                          "Invalid username or password",
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            }
+                                          },
+                                    child: Container(
+                                      height: 62,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(18),
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Color(0xFF2CA999),
+                                            Color(0xFF8CF8D6),
                                           ],
                                         ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            auth.isLoading 
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: primaryColor.withValues(
+                                              alpha: 0.28,
+                                            ),
+                                            blurRadius: 24,
+                                            offset: const Offset(0, 10),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          auth.isLoading
                                               ? const SizedBox(
-                                                  height: 20, 
-                                                  width: 20, 
-                                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black)
+                                                  height: 20,
+                                                  width: 20,
+                                                  child:
+                                                      CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        color: Colors.black,
+                                                      ),
                                                 )
                                               : Text(
                                                   "SIGN IN",
                                                   style: GoogleFonts.poppins(
-                                                    color: const Color.fromARGB(255, 16, 16, 16),
+                                                    color: const Color.fromARGB(
+                                                      255,
+                                                      16,
+                                                      16,
+                                                      16,
+                                                    ),
                                                     fontSize: 18,
                                                     fontWeight: FontWeight.w600,
                                                   ),
                                                 ),
-                                            const SizedBox(width: 12),
-                                            if (!auth.isLoading)
-                                              const Icon(
-                                                Icons.arrow_forward,
-                                                color: Color.fromARGB(255, 2, 2, 2),
+                                          const SizedBox(width: 12),
+                                          if (!auth.isLoading)
+                                            const Icon(
+                                              Icons.arrow_forward,
+                                              color: Color.fromARGB(
+                                                255,
+                                                2,
+                                                2,
+                                                2,
                                               ),
-                                          ],
-                                        ),
+                                            ),
+                                        ],
                                       ),
-                                    );
-                                  },
-                                ),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
 
                             const SizedBox(height: 26),
@@ -418,7 +467,7 @@ class _SignInScreenState extends State<SignInScreen> {
                                         color: isDark
                                             ? Colors.white70
                                             : SanctuaryTheme.lightPrimary
-                                                  .withOpacity(0.6),
+                                                  .withValues(alpha: 0.6),
 
                                         fontSize: 14,
                                       ),
@@ -503,12 +552,14 @@ class _SignInScreenState extends State<SignInScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
 
-        color: isDark ? Colors.black.withOpacity(0.28) : Colors.white,
+        color: isDark ? Colors.black.withValues(alpha: 0.28) : Colors.white,
 
         border: Border.all(
           color: isDark
-              ? (isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE7E2D8))
-              : SanctuaryTheme.lightPrimary.withOpacity(0.1),
+              ? (isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : const Color(0xFFE7E2D8))
+              : SanctuaryTheme.lightPrimary.withValues(alpha: 0.1),
         ),
       ),
 
@@ -530,15 +581,15 @@ class _SignInScreenState extends State<SignInScreen> {
 
           hintStyle: TextStyle(
             color: isDark
-                ? Colors.white.withOpacity(0.35)
-                : SanctuaryTheme.lightPrimary.withOpacity(0.35),
+                ? Colors.white.withValues(alpha: 0.35)
+                : SanctuaryTheme.lightPrimary.withValues(alpha: 0.35),
           ),
 
           prefixIcon: Icon(
             icon,
             color: isDark
                 ? Colors.white70
-                : SanctuaryTheme.lightPrimary.withOpacity(0.7),
+                : SanctuaryTheme.lightPrimary.withValues(alpha: 0.7),
           ),
 
           suffixIcon: isPassword
@@ -556,7 +607,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
                     color: isDark
                         ? Colors.white54
-                        : SanctuaryTheme.lightPrimary.withOpacity(0.54),
+                        : SanctuaryTheme.lightPrimary.withValues(alpha: 0.54),
                   ),
                 )
               : null,
@@ -577,7 +628,7 @@ class _SignInScreenState extends State<SignInScreen> {
           size: 14,
           color: isDark
               ? Colors.white38
-              : SanctuaryTheme.lightPrimary.withOpacity(0.38),
+              : SanctuaryTheme.lightPrimary.withValues(alpha: 0.38),
         ),
 
         const SizedBox(width: 6),
@@ -588,7 +639,12 @@ class _SignInScreenState extends State<SignInScreen> {
           style: GoogleFonts.poppins(
             color: isDark
                 ? Colors.white38
-                : const Color.fromARGB(255, 63, 118, 104).withOpacity(0.38),
+                : const Color.fromARGB(
+                    255,
+                    63,
+                    118,
+                    104,
+                  ).withValues(alpha: 0.38),
             fontSize: 10,
             letterSpacing: 1.4,
           ),

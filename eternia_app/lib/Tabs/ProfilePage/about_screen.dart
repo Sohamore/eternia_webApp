@@ -15,11 +15,17 @@ class AboutScreen extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final bool isDark = themeProvider.isDark;
 
-    final Color primaryColor = isDark ? const Color(0xFF67F5D4) : const Color(0xFF335848);
+    final Color primaryColor = isDark
+        ? const Color(0xFF67F5D4)
+        : const Color(0xFF335848);
     final Color bg = isDark ? const Color(0xFF071011) : const Color(0xFFF9F8F4);
     final Color textColor = isDark ? Colors.white : const Color(0xFF1B2722);
-    final Color innerCardColor = isDark ? const Color(0xFF141D1F) : Colors.white;
-    final Color borderColor = isDark ? Colors.white.withOpacity(0.08) : const Color(0xFFE7E2D8);
+    final Color innerCardColor = isDark
+        ? const Color(0xFF141D1F)
+        : Colors.white;
+    final Color borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : const Color(0xFFE7E2D8);
 
     return Scaffold(
       backgroundColor: bg,
@@ -30,7 +36,10 @@ class AboutScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: GestureDetector(
@@ -38,11 +47,17 @@ class AboutScreen extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.05),
+                        color: Colors.white.withValues(alpha: 0.05),
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                        border: Border.all(
+                          color: Colors.grey.withValues(alpha: 0.2),
+                        ),
                       ),
-                      child: Icon(Icons.arrow_back_ios_new, color: textColor, size: 20),
+                      child: Icon(
+                        Icons.arrow_back_ios_new,
+                        color: textColor,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ),
@@ -51,22 +66,43 @@ class AboutScreen extends StatelessWidget {
 
               // LOGO
               Container(
-                height: 100, width: 100,
+                height: 100,
+                width: 100,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [primaryColor.withOpacity(0.2), primaryColor.withOpacity(0.05)],
+                    colors: [
+                      primaryColor.withValues(alpha: 0.2),
+                      primaryColor.withValues(alpha: 0.05),
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  border: Border.all(color: primaryColor.withOpacity(0.3), width: 1),
+                  border: Border.all(
+                    color: primaryColor.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
                 ),
                 child: Icon(Icons.spa, color: primaryColor, size: 50),
               ),
               const SizedBox(height: 24),
-              Text("Eternia", style: GoogleFonts.playfairDisplay(color: textColor, fontSize: 48, fontWeight: FontWeight.bold)),
+              Text(
+                "Eternia",
+                style: GoogleFonts.playfairDisplay(
+                  color: textColor,
+                  fontSize: 48,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 4),
-              Text("Version 2.4.0 • Build 88", style: GoogleFonts.poppins(color: isDark ? Colors.grey[500] : Colors.grey[600], fontSize: 11, letterSpacing: 1)),
+              Text(
+                "Version 2.4.0 • Build 88",
+                style: GoogleFonts.poppins(
+                  color: isDark ? Colors.grey[500] : Colors.grey[600],
+                  fontSize: 11,
+                  letterSpacing: 1,
+                ),
+              ),
               const SizedBox(height: 40),
 
               Padding(
@@ -74,7 +110,12 @@ class AboutScreen extends StatelessWidget {
                 child: Text(
                   "A sanctuary for emotional healing, guided therapy, and genuine peer connection.",
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.poppins(color: isDark ? Colors.grey[300] : Colors.grey[800], fontSize: 14, height: 1.6, fontWeight: FontWeight.w500),
+                  style: GoogleFonts.poppins(
+                    color: isDark ? Colors.grey[300] : Colors.grey[800],
+                    fontSize: 14,
+                    height: 1.6,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
               const SizedBox(height: 40),
@@ -84,11 +125,38 @@ class AboutScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Column(
                   children: [
-                    _buildInfoCard("Our Clinical Mission", "To break down barriers to mental health by providing an accessible, stigma-free digital space for everyone.", Icons.favorite_border, innerCardColor, borderColor, primaryColor, textColor, isDark),
+                    _buildInfoCard(
+                      "Our Clinical Mission",
+                      "To break down barriers to mental health by providing an accessible, stigma-free digital space for everyone.",
+                      Icons.favorite_border,
+                      innerCardColor,
+                      borderColor,
+                      primaryColor,
+                      textColor,
+                      isDark,
+                    ),
                     const SizedBox(height: 16),
-                    _buildInfoCard("HIPAA Compliance", "All sessions, journal entries, and chat logs are end-to-end encrypted following strict medical privacy guidelines.", Icons.verified_user_outlined, innerCardColor, borderColor, primaryColor, textColor, isDark),
+                    _buildInfoCard(
+                      "HIPAA Compliance",
+                      "All sessions, journal entries, and chat logs are end-to-end encrypted following strict medical privacy guidelines.",
+                      Icons.verified_user_outlined,
+                      innerCardColor,
+                      borderColor,
+                      primaryColor,
+                      textColor,
+                      isDark,
+                    ),
                     const SizedBox(height: 16),
-                    _buildInfoCard("The Care Team", "Eternia is maintained by a coalition of licensed therapists, compassionate engineers, and designers.", Icons.groups_outlined, innerCardColor, borderColor, primaryColor, textColor, isDark),
+                    _buildInfoCard(
+                      "The Care Team",
+                      "Eternia is maintained by a coalition of licensed therapists, compassionate engineers, and designers.",
+                      Icons.groups_outlined,
+                      innerCardColor,
+                      borderColor,
+                      primaryColor,
+                      textColor,
+                      isDark,
+                    ),
                   ],
                 ),
               ),
@@ -97,13 +165,33 @@ class AboutScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Terms of Service", style: GoogleFonts.poppins(color: primaryColor, fontSize: 11, decoration: TextDecoration.underline)),
+                  Text(
+                    "Terms of Service",
+                    style: GoogleFonts.poppins(
+                      color: primaryColor,
+                      fontSize: 11,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
                   const SizedBox(width: 16),
-                  Text("Privacy Policy", style: GoogleFonts.poppins(color: primaryColor, fontSize: 11, decoration: TextDecoration.underline)),
+                  Text(
+                    "Privacy Policy",
+                    style: GoogleFonts.poppins(
+                      color: primaryColor,
+                      fontSize: 11,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
-              Text("Made with 💚 for your mind", style: GoogleFonts.poppins(color: isDark ? Colors.grey[600] : Colors.grey[500], fontSize: 10)),
+              Text(
+                "Made with 💚 for your mind",
+                style: GoogleFonts.poppins(
+                  color: isDark ? Colors.grey[600] : Colors.grey[500],
+                  fontSize: 10,
+                ),
+              ),
               const SizedBox(height: 40),
             ],
           ),
@@ -112,7 +200,16 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoCard(String title, String body, IconData icon, Color cardColor, Color borderColor, Color primaryColor, Color textColor, bool isDark) {
+  Widget _buildInfoCard(
+    String title,
+    String body,
+    IconData icon,
+    Color cardColor,
+    Color borderColor,
+    Color primaryColor,
+    Color textColor,
+    bool isDark,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -121,7 +218,12 @@ class AboutScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: borderColor),
         boxShadow: [
-          if (!isDark) BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
         ],
       ),
       child: Column(
@@ -131,11 +233,25 @@ class AboutScreen extends StatelessWidget {
             children: [
               Icon(icon, color: primaryColor, size: 20),
               const SizedBox(width: 12),
-              Text(title, style: GoogleFonts.poppins(color: textColor, fontSize: 14, fontWeight: FontWeight.bold)),
+              Text(
+                title,
+                style: GoogleFonts.poppins(
+                  color: textColor,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(body, style: GoogleFonts.poppins(color: isDark ? Colors.grey[400] : Colors.grey[600], fontSize: 12, height: 1.5)),
+          Text(
+            body,
+            style: GoogleFonts.poppins(
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontSize: 12,
+              height: 1.5,
+            ),
+          ),
         ],
       ),
     );

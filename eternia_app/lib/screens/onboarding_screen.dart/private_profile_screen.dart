@@ -190,7 +190,7 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
                                 shape: BoxShape.circle,
 
                                 border: Border.all(
-                                  color: primaryColor.withOpacity(0.25),
+                                  color: primaryColor.withValues(alpha: 0.25),
                                 ),
                               ),
                             ),
@@ -272,7 +272,7 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
                             borderRadius: BorderRadius.circular(18),
 
                             color: isDark
-                                ? Colors.white.withOpacity(0.03)
+                                ? Colors.white.withValues(alpha: 0.03)
                                 : Colors.white,
 
                             border: Border.all(
@@ -364,8 +364,8 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
 
                           border: Border.all(
                             color: isDark
-                                ? Colors.purple.withOpacity(0.15)
-                                : Colors.purple.withOpacity(0.08),
+                                ? Colors.purple.withValues(alpha: 0.15)
+                                : Colors.purple.withValues(alpha: 0.08),
                           ),
                         ),
 
@@ -425,8 +425,8 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
 
                         border: Border.all(
                           color: isDark
-                              ? Colors.red.withOpacity(0.15)
-                              : Colors.orange.withOpacity(0.18),
+                              ? Colors.red.withValues(alpha: 0.15)
+                              : Colors.orange.withValues(alpha: 0.18),
                         ),
                       ),
 
@@ -441,7 +441,7 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
 
-                              color: Colors.orange.withOpacity(0.15),
+                              color: Colors.orange.withValues(alpha: 0.15),
                             ),
 
                             child: const Icon(
@@ -600,7 +600,7 @@ class _PrivateProfileScreenState extends State<PrivateProfileScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
 
-        color: isDark ? Colors.white.withOpacity(0.03) : Colors.white,
+        color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
 
         border: Border.all(color: isDark ? Colors.white10 : Colors.black12),
       ),
