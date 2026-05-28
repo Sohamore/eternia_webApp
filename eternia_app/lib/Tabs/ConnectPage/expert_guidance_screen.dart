@@ -415,7 +415,17 @@ class _ExpertGuidanceScreenState extends State<ExpertGuidanceScreen> {
 
     // Use backend data when available
     if (providerExperts != null && providerExperts.isNotEmpty) {
-      return providerExperts.map((e) {
+      final selectedCategory = filters[selectedFilterIndex];
+      final filteredExperts = selectedFilterIndex == 0
+          ? providerExperts
+          : providerExperts.where((e) {
+              final specialty = (e['specialty'] as String? ?? '').toLowerCase();
+              final tags = (e['expertise_tags'] as List? ?? []).map((t) => t.toString().toLowerCase()).toList();
+              final catLower = selectedCategory.toLowerCase();
+              return specialty.contains(catLower) || tags.contains(catLower);
+            }).toList();
+
+      return filteredExperts.map((e) {
         final name =
             e['name'] as String? ?? e['username'] as String? ?? "Expert";
         final specialty =

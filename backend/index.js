@@ -8,6 +8,7 @@ const morgan = require('morgan');
 const logger = require('./utils/logger');
 const { errorHandler, notFound } = require('./middlewares/errorHandler');
 const routes = require('./routes');
+const prisma = require('./prisma/client');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -62,11 +63,26 @@ const io = new Server(server, {
   }
 });
 
+global.io = io;
 initSocket(io);
 
+// Keep Neon DB warm — ping every 4 minutes to prevent cold-start timeouts
+async function warmUpDb() {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    logger.info('[DB] Keep-alive ping successful');
+  } catch (err) {
+    logger.warn('[DB] Keep-alive ping failed:', err.message);
+  }
+}
+
 if (!process.env.VERCEL) {
-  server.listen(PORT, '0.0.0.0', () => {
+  server.listen(PORT, '0.0.0.0', async () => {
     logger.info(`Eternia server running on port ${PORT} (${process.env.NODE_ENV || 'development'})`);
+    // Warm up the database immediately on startup
+    await warmUpDb();
+    // Ping every 4 minutes to prevent Neon cold starts
+    setInterval(warmUpDb, 4 * 60 * 1000);
   });
 }
 

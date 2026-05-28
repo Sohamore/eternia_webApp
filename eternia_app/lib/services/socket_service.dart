@@ -18,6 +18,9 @@ class SocketService {
   final _matchFailedController = StreamController<String>.broadcast();
   final _sessionRestoredController = StreamController<Map<String, dynamic>?>.broadcast();
   final _availabilityChangeController = StreamController<Map<String, dynamic>>.broadcast();
+  final _emergencyRequestController = StreamController<Map<String, dynamic>>.broadcast();
+  final _emergencyAcceptedController = StreamController<Map<String, dynamic>>.broadcast();
+  final _emergencyDeclinedController = StreamController<Map<String, dynamic>>.broadcast();
 
   SocketService(this._tokenStorage);
 
@@ -30,6 +33,9 @@ class SocketService {
   Stream<String> get matchFailed => _matchFailedController.stream;
   Stream<Map<String, dynamic>?> get sessionRestored => _sessionRestoredController.stream;
   Stream<Map<String, dynamic>> get availabilityChange => _availabilityChangeController.stream;
+  Stream<Map<String, dynamic>> get emergencyRequest => _emergencyRequestController.stream;
+  Stream<Map<String, dynamic>> get emergencyAccepted => _emergencyAcceptedController.stream;
+  Stream<Map<String, dynamic>> get emergencyDeclined => _emergencyDeclinedController.stream;
 
   bool get isConnected => _socket?.connected ?? false;
 
@@ -109,6 +115,18 @@ class SocketService {
       _availabilityChangeController.add(Map<String, dynamic>.from(data));
     });
 
+    _socket!.on('emergency-request', (data) {
+      _emergencyRequestController.add(Map<String, dynamic>.from(data));
+    });
+
+    _socket!.on('emergency-accepted', (data) {
+      _emergencyAcceptedController.add(Map<String, dynamic>.from(data));
+    });
+
+    _socket!.on('emergency-declined', (data) {
+      _emergencyDeclinedController.add(Map<String, dynamic>.from(data));
+    });
+
     _socket!.connect();
   }
 
@@ -137,6 +155,18 @@ class SocketService {
 
   void setAvailability(bool isAvailable) {
     _socket?.emit('availability-change', {'isAvailable': isAvailable});
+  }
+
+  void requestEmergency(String expertId) {
+    _socket?.emit('emergency-request', {'expertId': expertId});
+  }
+
+  void acceptEmergency(String studentId) {
+    _socket?.emit('emergency-accept', {'studentId': studentId});
+  }
+
+  void declineEmergency(String studentId) {
+    _socket?.emit('emergency-decline', {'studentId': studentId});
   }
 
   void disconnect() {

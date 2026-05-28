@@ -106,6 +106,29 @@ const ExpertDashboardContent = () => {
     },
   });
 
+  const { data: earningsData } = useQuery({
+    queryKey: ["expert-earnings", user?.id],
+    queryFn: async () => {
+      if (!user) return { completedSessions: 0, totalEarnings: 0, ratePerSession: 500 };
+      const { data } = await api.get("/appointments/earnings");
+      return data.earnings;
+    },
+    enabled: !!user,
+    refetchInterval: 3000,
+  });
+
+  const confirmAppointment = useMutation({
+    mutationFn: async (appointmentId: string) => {
+      await api.patch(`/appointments/${appointmentId}/confirm`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expert-appointments"] });
+      queryClient.invalidateQueries({ queryKey: ["expert-earnings"] });
+      toast.success("Appointment confirmed");
+    },
+    onError: (e: any) => toast.error(e.response?.data?.error || e.message),
+  });
+
   // Polling as a fallback for realtime L3 notifications
   useEffect(() => {
     if (!user) return;
@@ -374,6 +397,25 @@ const ExpertDashboardContent = () => {
                 </div>
               </div>
             )}
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="p-5 rounded-2xl bg-card border border-border/50 flex flex-col justify-between shadow-sm bg-gradient-to-br from-card to-muted/20">
+                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Completed Sessions</span>
+                <span className="text-3xl font-bold font-display mt-2">{earningsData?.completedSessions || 0}</span>
+                <span className="text-[10px] text-muted-foreground mt-1">Sessions successfully completed</span>
+              </div>
+              <div className="p-5 rounded-2xl bg-card border border-border/50 flex flex-col justify-between shadow-sm bg-gradient-to-br from-card to-muted/20">
+                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Total Earnings</span>
+                <span className="text-3xl font-bold font-display text-emerald-500 mt-2">₹{earningsData?.totalEarnings || 0}</span>
+                <span className="text-[10px] text-muted-foreground mt-1">At ₹{earningsData?.ratePerSession || 500} per completed session</span>
+              </div>
+              <div className="p-5 rounded-2xl bg-card border border-border/50 flex flex-col justify-between shadow-sm bg-gradient-to-br from-card to-muted/20">
+                <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Upcoming Sessions</span>
+                <span className="text-3xl font-bold font-display mt-2">{upcoming.length}</span>
+                <span className="text-[10px] text-muted-foreground mt-1">Scheduled appointments</span>
+              </div>
+            </div>
+
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold font-display">Appointments</h2>
               <Button size="sm" className="gap-1.5" onClick={() => { setActiveTab("schedule"); }}>
@@ -425,6 +467,11 @@ const ExpertDashboardContent = () => {
 
                         {apt.status !== "completed" && apt.status !== "cancelled" && (
                           <div className="flex items-center gap-2 mt-3 flex-wrap">
+                            {apt.status === "pending" && (
+                              <Button size="sm" className="gap-1 h-7 text-[11px] px-3 bg-emerald-600 hover:bg-emerald-500" onClick={() => confirmAppointment.mutate(apt.id)} disabled={confirmAppointment.isPending}>
+                                <CheckCircle className="w-3.5 h-3.5 mr-1" />Confirm
+                              </Button>
+                            )}
                             {apt.session_type === "chat" ? (
                               <Button size="sm" className="gap-1 h-7 text-[11px] px-3 bg-green-600 hover:bg-green-500" onClick={() => {
                                 setChatModal({ open: true, appointmentId: apt.id, studentName: apt.student?.username || "Student" });
@@ -610,6 +657,11 @@ const ExpertDashboardContent = () => {
                       <div className="flex items-center gap-2 shrink-0">
                         {(apt.status === "pending" || apt.status === "confirmed") && (
                           <>
+                            {apt.status === "pending" && (
+                              <Button size="sm" className="gap-1 h-7 text-[11px] px-2.5 bg-emerald-600 hover:bg-emerald-500" onClick={() => confirmAppointment.mutate(apt.id)} disabled={confirmAppointment.isPending}>
+                                <CheckCircle className="w-3 h-3" />Confirm
+                              </Button>
+                            )}
                             {apt.session_type === "chat" ? (
                               <Button size="sm" className="gap-1 h-7 text-[11px] px-2.5 bg-green-600 hover:bg-green-500" onClick={() => {
                                 setChatModal({ open: true, appointmentId: apt.id, studentName: apt.student?.username || "Student" });

@@ -14,6 +14,10 @@ class SocketProvider extends ChangeNotifier {
   String? _lastError;
   String? _pendingRequestId;
 
+  String _emergencyState = 'idle';
+  Map<String, dynamic>? _incomingEmergency;
+  Map<String, dynamic>? _activeEmergencySession;
+
   List<StreamSubscription> _subscriptions = [];
 
   SocketProvider(this._socketService) {
@@ -28,6 +32,10 @@ class SocketProvider extends ChangeNotifier {
   String? get pendingRequestId => _pendingRequestId;
   
   bool get isMatchmaking => _pendingRequestId != null;
+
+  String get emergencyState => _emergencyState;
+  Map<String, dynamic>? get incomingEmergency => _incomingEmergency;
+  Map<String, dynamic>? get activeEmergencySession => _activeEmergencySession;
 
   void _initListeners() {
     _subscriptions.add(_socketService.connectionState.listen((connected) {
@@ -90,6 +98,33 @@ class SocketProvider extends ChangeNotifier {
       // In a real app we might check if this is our user, but for now we just 
       // rely on the local state update when we toggle it, or handle it here if needed.
     }));
+
+    _subscriptions.add(_socketService.emergencyRequest.listen((data) {
+      _incomingEmergency = data;
+      _emergencyState = 'incoming';
+      notifyListeners();
+    }));
+
+    _subscriptions.add(_socketService.emergencyAccepted.listen((data) {
+      _activeEmergencySession = data;
+      _emergencyState = 'accepted';
+      _incomingEmergency = null;
+      notifyListeners();
+    }));
+
+    _subscriptions.add(_socketService.emergencyDeclined.listen((data) {
+      _emergencyState = 'declined';
+      _incomingEmergency = null;
+      notifyListeners();
+      
+      // Reset back to idle after a few seconds so UI refreshes
+      Timer(const Duration(seconds: 4), () {
+        if (_emergencyState == 'declined') {
+          _emergencyState = 'idle';
+          notifyListeners();
+        }
+      });
+    }));
   }
 
   Future<void> connect() async {
@@ -151,6 +186,33 @@ class SocketProvider extends ChangeNotifier {
       _activeSession = null;
       notifyListeners();
     }
+  }
+
+  void requestEmergency(String expertId) {
+    _emergencyState = 'pending';
+    _lastError = null;
+    _socketService.requestEmergency(expertId);
+    notifyListeners();
+  }
+
+  void acceptEmergency(String studentId) {
+    _socketService.acceptEmergency(studentId);
+    _incomingEmergency = null;
+    notifyListeners();
+  }
+
+  void declineEmergency(String studentId) {
+    _socketService.declineEmergency(studentId);
+    _incomingEmergency = null;
+    _emergencyState = 'idle';
+    notifyListeners();
+  }
+
+  void resetEmergency() {
+    _emergencyState = 'idle';
+    _incomingEmergency = null;
+    _activeEmergencySession = null;
+    notifyListeners();
   }
 
   void clearError() {

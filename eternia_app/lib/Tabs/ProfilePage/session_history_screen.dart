@@ -7,6 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
 import 'package:eternia_ef/providers/appointments_provider.dart';
+import 'package:eternia_ef/providers/videosdk_provider.dart';
+import 'package:eternia_ef/Tabs/ConnectPage/chat_screen.dart';
+import 'package:eternia_ef/screens/onboarding_screen.dart/calling_screen.dart';
 
 class SessionHistoryScreen extends StatefulWidget {
   const SessionHistoryScreen({super.key});
@@ -96,6 +99,7 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen> {
                       final sessionMap = <String, String>{
                         "counselor":
                             s['expertName'] as String? ??
+                            (s['expert'] != null ? s['expert']['username'] as String? : null) ??
                             s['expert_name'] as String? ??
                             "Counselor",
                         "type":
@@ -118,6 +122,7 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen> {
                       return _buildTimelineItem(
                         context,
                         sessionMap,
+                        s,
                         isDark,
                         primaryColor,
                         dangerColor,
@@ -218,9 +223,90 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen> {
     );
   }
 
+  Future<void> _joinSession(BuildContext context, Map<String, dynamic> sessionData) async {
+    final String type = sessionData['session_type'] as String? ?? 'video';
+    final String? roomId = sessionData['room_id'] as String?;
+    final String? appointmentId = sessionData['id'] as String?;
+    final String expertName = (sessionData['expert'] != null ? sessionData['expert']['username'] as String? : null) ?? 'Expert';
+    
+    if (appointmentId == null) return;
+    
+    if (type == 'chat') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            sessionId: appointmentId,
+            counselorName: expertName,
+            isExpertChat: true,
+          ),
+        ),
+      );
+    } else {
+      final String? slotTimeStr = sessionData['slot_time'] as String? ?? sessionData['slotTime'] as String?;
+      if (slotTimeStr == null) return;
+      
+      final DateTime slotTime = DateTime.parse(slotTimeStr).toLocal();
+      final DateTime now = DateTime.now();
+      final DateTime allowedJoinTime = slotTime.subtract(const Duration(minutes: 5));
+      
+      if (now.isBefore(allowedJoinTime)) {
+        final remainingMin = allowedJoinTime.difference(now).inMinutes;
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("Not Time Yet"),
+            content: Text("Your session is scheduled for ${_formatTimeOnly(slotTimeStr)}.\n\nYou can join 5 minutes before the scheduled time (in $remainingMin minutes)."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("OK"),
+              ),
+            ],
+          ),
+        );
+      } else {
+        if (roomId == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Call room has not been initiated by the expert yet.")),
+          );
+          return;
+        }
+
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(child: CircularProgressIndicator()),
+        );
+
+        final videoSDKProvider = Provider.of<VideoSDKProvider>(context, listen: false);
+        await videoSDKProvider.fetchToken();
+
+        if (mounted) Navigator.pop(context); // Dismiss loading
+
+        if (videoSDKProvider.token != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CallingScreen(
+                roomId: roomId,
+                token: videoSDKProvider.token!,
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(videoSDKProvider.error ?? "Failed to fetch VideoSDK token.")),
+          );
+        }
+      }
+    }
+  }
+
   Widget _buildTimelineItem(
     BuildContext context,
     Map<String, String> session,
+    Map<String, dynamic> rawSession,
     bool isDark,
     Color primaryColor,
     Color dangerColor,
@@ -395,17 +481,29 @@ class _SessionHistoryScreenState extends State<SessionHistoryScreen> {
                           ),
                         ),
                         const Spacer(),
-                        if (!isCancelled)
+                        if (session["status"] == "completed" || session["status"] == "Completed")
                           GestureDetector(
                             onTap: () {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("Viewing session notes..."),
+                                SnackBar(
+                                  content: Text("Notes: ${rawSession['session_notes_encrypted'] ?? 'No notes recorded.'}"),
                                 ),
                               );
                             },
                             child: Text(
                               "View Notes",
+                              style: GoogleFonts.poppins(
+                                color: primaryColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          )
+                        else if (session["status"] == "pending" || session["status"] == "confirmed")
+                          GestureDetector(
+                            onTap: () => _joinSession(context, rawSession),
+                            child: Text(
+                              "Join Session",
                               style: GoogleFonts.poppins(
                                 color: primaryColor,
                                 fontSize: 12,

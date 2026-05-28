@@ -53,8 +53,8 @@ async function createAppointment(studentId, expertId, slotId, slotTime, sessionT
     if (!slot) throw Object.assign(new Error('Slot no longer available'), { status: 409 });
   }
 
-  return prisma.$transaction(async (tx) => {
-    const appointment = await tx.appointment.create({
+  const appointment = await prisma.$transaction(async (tx) => {
+    const appt = await tx.appointment.create({
       data: {
         student_id: studentId,
         expert_id: expertId,
@@ -66,7 +66,8 @@ async function createAppointment(studentId, expertId, slotId, slotTime, sessionT
         room_id: roomId,
       },
       include: {
-        expert: { select: { id: true, username: true, specialty: true } }
+        expert: { select: { id: true, username: true, specialty: true, avatar_url: true } },
+        student: { select: { id: true, username: true } }
       }
     });
 
@@ -77,8 +78,16 @@ async function createAppointment(studentId, expertId, slotId, slotTime, sessionT
       });
     }
 
-    return appointment;
+    return appt;
   });
+
+  const io = global.io;
+  if (io) {
+    io.to(`user:${expertId}`).emit('appointment-booked', appointment);
+    io.to(`user:${studentId}`).emit('appointment-booked', appointment);
+  }
+
+  return appointment;
 }
 
 async function cancelAppointment(userId, appointmentId) {
@@ -129,11 +138,17 @@ async function cancelAppointment(userId, appointmentId) {
     });
   }
 
+  const io = global.io;
+  if (io) {
+    io.to(`user:${appointment.expert_id}`).emit('appointment-cancelled', { appointmentId });
+    io.to(`user:${appointment.student_id}`).emit('appointment-cancelled', { appointmentId });
+  }
+
   return { success: true };
 }
 
 async function addAvailabilitySlot(expertId, startTime, endTime, recurrenceRule, institutionId) {
-  return prisma.expertAvailability.create({
+  const slot = await prisma.expertAvailability.create({
     data: {
       expert_id: expertId,
       start_time: new Date(startTime),
@@ -142,6 +157,13 @@ async function addAvailabilitySlot(expertId, startTime, endTime, recurrenceRule,
       institution_id: institutionId || null
     }
   });
+
+  const io = global.io;
+  if (io) {
+    io.emit('slot-created', slot);
+  }
+
+  return slot;
 }
 
 async function deleteAvailabilitySlot(expertId, slotId) {
@@ -150,6 +172,12 @@ async function deleteAvailabilitySlot(expertId, slotId) {
   });
   if (!slot) throw Object.assign(new Error('Slot not found or already booked'), { status: 404 });
   await prisma.expertAvailability.delete({ where: { id: slotId } });
+
+  const io = global.io;
+  if (io) {
+    io.emit('slot-deleted', { slotId });
+  }
+
   return { success: true };
 }
 
@@ -162,7 +190,7 @@ async function completeAppointment(userId, appointmentId, notes) {
   });
   if (!appointment) throw Object.assign(new Error('Appointment not found'), { status: 404 });
 
-  await prisma.appointment.update({
+  const updated = await prisma.appointment.update({
     where: { id: appointmentId },
     data: {
       status: 'completed',
@@ -170,6 +198,12 @@ async function completeAppointment(userId, appointmentId, notes) {
       session_notes_encrypted: notes || null
     }
   });
+
+  const io = global.io;
+  if (io) {
+    io.to(`user:${appointment.expert_id}`).emit('appointment-completed', updated);
+    io.to(`user:${appointment.student_id}`).emit('appointment-completed', updated);
+  }
 
   return { success: true };
 }
@@ -303,9 +337,48 @@ async function updateAppointmentRoom(userId, appointmentId, roomId) {
   });
 }
 
+async function confirmAppointment(expertId, appointmentId) {
+  const appointment = await prisma.appointment.findFirst({
+    where: { id: appointmentId, expert_id: expertId }
+  });
+  if (!appointment) throw Object.assign(new Error('Appointment not found'), { status: 404 });
+  if (appointment.status !== 'pending') {
+    throw Object.assign(new Error('Appointment is not in pending status'), { status: 400 });
+  }
+
+  const updated = await prisma.appointment.update({
+    where: { id: appointmentId },
+    data: { status: 'confirmed', updated_at: new Date() },
+    include: {
+      expert: { select: { id: true, username: true, specialty: true } },
+      student: { select: { id: true, username: true } }
+    }
+  });
+
+  const io = global.io;
+  if (io) {
+    io.to(`user:${updated.expert_id}`).emit('appointment-confirmed', updated);
+    io.to(`user:${updated.student_id}`).emit('appointment-confirmed', updated);
+  }
+
+  return updated;
+}
+
+async function getExpertEarnings(expertId) {
+  const completedAppointments = await prisma.appointment.count({
+    where: {
+      expert_id: expertId,
+      status: 'completed'
+    }
+  });
+  
+  const amount = completedAppointments * 500;
+  return { completedSessions: completedAppointments, totalEarnings: amount, ratePerSession: 500 };
+}
+
 module.exports = {
   getExperts, getAvailableSlots, getMySlots, getUserAppointments,
   createAppointment, cancelAppointment, addAvailabilitySlot, deleteAvailabilitySlot,
   completeAppointment, rescheduleAppointment, escalateAppointment,
-  getAppointmentById, updateAppointmentRoom
+  getAppointmentById, updateAppointmentRoom, confirmAppointment, getExpertEarnings
 };

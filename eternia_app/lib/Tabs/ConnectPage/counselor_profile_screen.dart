@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:eternia_ef/providers/theme_provider.dart';
 import 'package:eternia_ef/providers/videosdk_provider.dart';
 import 'package:eternia_ef/providers/appointments_provider.dart';
+import 'package:eternia_ef/providers/socket_provider.dart';
 import 'package:eternia_ef/screens/onboarding_screen.dart/calling_screen.dart';
 
 class CounselorProfileScreen extends StatefulWidget {
@@ -31,9 +32,28 @@ class CounselorProfileScreen extends StatefulWidget {
 }
 
 class _CounselorProfileScreenState extends State<CounselorProfileScreen> {
-  int selectedTimeIndex = 1;
-  DateTime _currentMonth = DateTime(2024, 9);
-  DateTime _selectedDate = DateTime(2024, 9, 3);
+  int selectedTimeIndex = -1;
+  String? _selectedSlotId;
+  DateTime? _selectedSlotTime;
+  late DateTime _currentMonth;
+  late DateTime _selectedDate;
+
+  bool _isSameDay(DateTime d1, DateTime d2) {
+    return d1.year == d2.year && d1.month == d2.month && d1.day == d2.day;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _currentMonth = DateTime.now();
+    _selectedDate = DateTime.now();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.id != null) {
+        Provider.of<AppointmentsProvider>(context, listen: false).fetchSlots(widget.id!);
+      }
+    });
+  }
 
   final List<String> _monthNames = [
     "January",
@@ -326,7 +346,85 @@ class _CounselorProfileScreenState extends State<CounselorProfileScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 24),
+
+                // EMERGENCY CALL BUTTON
+                Consumer<SocketProvider>(
+                  builder: (context, socketProvider, child) {
+                    final emergencyState = socketProvider.emergencyState;
+                    
+                    return GestureDetector(
+                      onTap: () {
+                        if (widget.id == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Emergency call is not available for preview counselors.")),
+                          );
+                          return;
+                        }
+                        
+                        if (emergencyState == 'idle') {
+                          socketProvider.requestEmergency(widget.id!);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Emergency call request sent to expert.")),
+                          );
+                        } else if (emergencyState == 'accepted') {
+                          final session = socketProvider.activeEmergencySession;
+                          if (session != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CallingScreen(
+                                  roomId: session['meetingId'],
+                                  token: session['token'],
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.red.withValues(alpha: 0.5)),
+                          color: emergencyState == 'pending' 
+                              ? Colors.orange.withValues(alpha: 0.1) 
+                              : (emergencyState == 'accepted' ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.05)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              emergencyState == 'pending' 
+                                  ? Icons.hourglass_empty 
+                                  : (emergencyState == 'accepted' ? Icons.check_circle_outline : Icons.emergency),
+                              color: emergencyState == 'pending' 
+                                  ? Colors.orange 
+                                  : (emergencyState == 'accepted' ? Colors.green : Colors.red),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 10),
+                            Text(
+                              emergencyState == 'pending' 
+                                  ? "WAITING FOR ACCEPTANCE..." 
+                                  : (emergencyState == 'accepted' ? "EMERGENCY CALL READY - TAP TO JOIN" : "REQUEST EMERGENCY SESSION"),
+                              style: GoogleFonts.poppins(
+                                color: emergencyState == 'pending' 
+                                    ? Colors.orange 
+                                    : (emergencyState == 'accepted' ? Colors.green : Colors.red),
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 32),
 
                 // AVAILABLE SLOTS
                 Row(
@@ -488,47 +586,81 @@ class _CounselorProfileScreenState extends State<CounselorProfileScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 12),
-                                Wrap(
-                                  spacing: 10,
-                                  runSpacing: 10,
-                                  children: [
-                                    _buildTimePill(
-                                      "09:00 AM",
-                                      0,
-                                      isDark: isDark,
-                                      primary: primary,
-                                      borderColor: borderColor,
-                                      selectedDateBg: selectedDateBg,
-                                      textPrimary: textPrimary,
-                                    ),
-                                    _buildTimePill(
-                                      "11:30 AM",
-                                      1,
-                                      isDark: isDark,
-                                      primary: primary,
-                                      borderColor: borderColor,
-                                      selectedDateBg: selectedDateBg,
-                                      textPrimary: textPrimary,
-                                    ),
-                                    _buildTimePill(
-                                      "02:00 PM",
-                                      2,
-                                      isDark: isDark,
-                                      primary: primary,
-                                      borderColor: borderColor,
-                                      selectedDateBg: selectedDateBg,
-                                      textPrimary: textPrimary,
-                                    ),
-                                    _buildTimePill(
-                                      "04:30 PM",
-                                      3,
-                                      isDark: isDark,
-                                      primary: primary,
-                                      borderColor: borderColor,
-                                      selectedDateBg: selectedDateBg,
-                                      textPrimary: textPrimary,
-                                    ),
-                                  ],
+                                Consumer<AppointmentsProvider>(
+                                  builder: (context, appointmentsProvider, _) {
+                                    final allSlots = appointmentsProvider.slots ?? [];
+                                    final selectedDaySlots = allSlots.where((slot) {
+                                      final startTime = DateTime.tryParse(slot['start_time'] as String? ?? '');
+                                      return startTime != null && _isSameDay(startTime, _selectedDate);
+                                    }).toList();
+
+                                    if (appointmentsProvider.isLoading) {
+                                      return const Center(child: CircularProgressIndicator());
+                                    }
+
+                                    if (selectedDaySlots.isEmpty) {
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 8),
+                                        child: Text(
+                                          "No slots available",
+                                          style: GoogleFonts.poppins(
+                                            color: textSecondary,
+                                            fontSize: 11,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                      );
+                                    }
+
+                                    return Wrap(
+                                      spacing: 10,
+                                      runSpacing: 10,
+                                      children: selectedDaySlots.map((slot) {
+                                        final startTime = DateTime.tryParse(slot['start_time'] as String? ?? '')?.toLocal();
+                                        final slotId = slot['id'] as String;
+                                        final isBooked = slot['is_booked'] == true;
+                                        final formattedTime = startTime != null 
+                                            ? "${startTime.hour > 12 ? startTime.hour - 12 : (startTime.hour == 0 ? 12 : startTime.hour)}:${startTime.minute.toString().padLeft(2, '0')} ${startTime.hour >= 12 ? 'PM' : 'AM'}"
+                                            : 'Unknown';
+                                        
+                                        final isSelected = _selectedSlotId == slotId;
+                                        
+                                        return GestureDetector(
+                                          onTap: isBooked ? null : () {
+                                            setState(() {
+                                              _selectedSlotId = slotId;
+                                              _selectedSlotTime = startTime;
+                                            });
+                                          },
+                                          child: Opacity(
+                                            opacity: isBooked ? 0.4 : 1.0,
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(20),
+                                                border: Border.all(
+                                                  color: isSelected 
+                                                      ? primary 
+                                                      : (isBooked ? Colors.red.withValues(alpha: 0.3) : borderColor),
+                                                ),
+                                                color: isSelected 
+                                                    ? selectedDateBg 
+                                                    : (isBooked ? Colors.red.withValues(alpha: 0.05) : cardColor),
+                                              ),
+                                              child: Text(
+                                                "$formattedTime${isBooked ? ' (Booked)' : ''}",
+                                                style: GoogleFonts.poppins(
+                                                  color: isSelected ? primary : textSecondary,
+                                                  fontSize: 11,
+                                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    );
+                                  },
                                 ),
                               ],
                             ),
@@ -666,12 +798,7 @@ class _CounselorProfileScreenState extends State<CounselorProfileScreen> {
 
                       // BOOK SESSION BUTTON
                       GestureDetector(
-                        onTap: () => _showBookingSuccessDialog(
-                          context,
-                          isDark: isDark,
-                          primary: primary,
-                          buttonText: buttonText,
-                        ),
+                        onTap: () => _performBooking(context, primary, isDark),
                         child: Container(
                           width: double.infinity,
                           height: 54,
@@ -745,6 +872,54 @@ class _CounselorProfileScreenState extends State<CounselorProfileScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _performBooking(BuildContext context, Color primary, bool isDark) async {
+    if (widget.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Cannot book sessions with preview counselor profiles.")),
+      );
+      return;
+    }
+    if (_selectedSlotId == null || _selectedSlotTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please select an available slot first.")),
+      );
+      return;
+    }
+
+    // Show a loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final provider = Provider.of<AppointmentsProvider>(context, listen: false);
+    final success = await provider.book(
+      expertId: widget.id!,
+      slotId: _selectedSlotId,
+      slotTime: _selectedSlotTime!.toUtc().toIso8601String(),
+      sessionType: 'video',
+      creditsCharged: 0,
+    );
+
+    // Dismiss loading indicator
+    if (mounted) Navigator.pop(context);
+
+    if (success) {
+      final Color buttonTextColor = isDark ? const Color(0xFF0D1418) : Colors.white;
+      _showBookingSuccessDialog(
+        context,
+        isDark: isDark,
+        primary: primary,
+        buttonText: buttonTextColor,
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(provider.error ?? "Failed to book session. Please try again.")),
+      );
+    }
   }
 
   Future<void> _startVideoCall() async {

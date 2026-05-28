@@ -120,8 +120,23 @@ async function sendAppointmentMessage(req, res, next) {
   } catch (err) { next(err); }
 }
 
+async function confirmAppointment(req, res, next) {
+  try {
+    const appointment = await appointmentsService.confirmAppointment(req.user.id, req.params.id);
+    res.json({ appointment });
+  } catch (err) { next(err); }
+}
+
+async function getExpertEarnings(req, res, next) {
+  try {
+    const earnings = await appointmentsService.getExpertEarnings(req.user.id);
+    res.json({ earnings });
+  } catch (err) { next(err); }
+}
+
 module.exports = { 
   getExperts, getSlots, getMySlots, getMyAppointments, createAppointment, cancelAppointment, 
   addSlot, deleteSlot, completeAppointment, rescheduleAppointment, escalateAppointment,
-  getAppointmentById, updateAppointmentRoom, getAppointmentMessages, sendAppointmentMessage
+  getAppointmentById, updateAppointmentRoom, getAppointmentMessages, sendAppointmentMessage,
+  confirmAppointment, getExpertEarnings
 };

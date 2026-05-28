@@ -393,6 +393,74 @@ function initSocket(io) {
       io.to(`user:${recipientId}`).emit('typing', { senderId: userId, isTyping });
     });
 
+    // 7.5 Emergency Call
+    socket.on('emergency-request', async (data) => {
+      const { expertId } = data;
+      logger.info(`Student ${userId} requested emergency call with Expert ${expertId}`);
+      io.to(`user:${expertId}`).emit('emergency-request', {
+        studentId: userId,
+        studentName: socket.user.username || 'Anonymous Student',
+        avatarUrl: socket.user.avatar_url || ''
+      });
+    });
+
+    socket.on('emergency-accept', async (data) => {
+      const { studentId } = data;
+      logger.info(`Expert ${userId} accepted emergency call from Student ${studentId}`);
+      try {
+        // Initialize VideoSDK session room
+        const videoSession = await videosdkService.createRoom();
+        const meetingId = videoSession.roomId;
+        const token = videoSession.token;
+
+        // Save active session in DB
+        const activeSession = await prisma.activeSession.create({
+          data: {
+            student_id: studentId,
+            expert_id: userId,
+            meeting_id: meetingId,
+            session_type: 'video'
+          }
+        });
+
+        // Update availability for both to busy
+        await prisma.profile.updateMany({
+          where: { id: { in: [studentId, userId] } },
+          data: { availability_status: 'busy' }
+        });
+
+        await prisma.availabilityStatus.updateMany({
+          where: { user_id: { in: [studentId, userId] } },
+          data: { is_available: false, last_seen: new Date() }
+        });
+
+        io.emit('availability-change', { userId: studentId, isAvailable: false, role: 'student' });
+        io.emit('availability-change', { userId: userId, isAvailable: false, role: userRole });
+
+        const payload = {
+          sessionId: activeSession.id,
+          meetingId: meetingId,
+          token: token,
+          studentId: studentId,
+          expertId: userId,
+          roleRequested: 'expert'
+        };
+
+        io.to(`user:${studentId}`).emit('emergency-accepted', payload);
+        io.to(`user:${userId}`).emit('emergency-accepted', payload);
+      } catch (err) {
+        logger.error(`Error accepting emergency request:`, err.message);
+        io.to(`user:${userId}`).emit('emergency-failed', { message: 'Failed to start meeting.' });
+        io.to(`user:${studentId}`).emit('emergency-failed', { message: 'Expert accepted, but meeting start failed.' });
+      }
+    });
+
+    socket.on('emergency-decline', (data) => {
+      const { studentId } = data;
+      logger.info(`Expert ${userId} declined emergency call from Student ${studentId}`);
+      io.to(`user:${studentId}`).emit('emergency-declined', { expertId: userId });
+    });
+
     // 8. Reconnect and State Restoration
     socket.on('reconnect-user', async () => {
       logger.info(`Attempting state reconnection for User ${userId}`);
